@@ -1,0 +1,1544 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CONTROL DE TRABAJO DE PARTO</title>
+    <link rel="stylesheet"  href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <form id="formulario-clinico" method="post">
+        <div class="form-container">
+            <!-- Encabezado del Formulario -->
+            <div class="form-header">
+                <div class="header-left">
+                    <div class="logo-section">
+                        <div class="logo-box">
+                            <img src="{% static 'img/logo_hospital.png' %}" alt="Logo Hospital">
+                        </div>
+                        
+                    </div>
+                </div>
+                <div class="header-center">
+                    <h1>CONTROL DE TRABAJO DE PARTO</h1>
+                </div>
+                <div class="header-right">
+                    <div class="code-box">
+                        <div><input type="text" id="codigo" name="codigo" value="" class="header-input header-input-static" required maxlength="255" placeholder="CÓDIGO" readonly></div>
+                        <div class="header-static-chip">FRSPA-022</div>
+                        <div class="header-static-chip">VERSIÓN</div>
+                        <div><input type="text" id="version" name="version" value="01" class="header-input header-input-static" required maxlength="50" placeholder="VERSIÓN" readonly></div>
+                        <div class="header-chip-side">
+                            <div class="header-static-chip">FECHA DE ELABORACIÓN</div>
+                            <div class="header-static-chip">2 DE MARZO DEL 2018</div>
+                            <div class="header-static-chip">FECHA DE ACTUALIZACIÓN</div>
+                            <div class="header-static-chip">2 DE MARZO DEL 2018</div>
+                        </div>
+                    </div>
+                    
+                </div>
+                <div class="header-top-right">
+                    <img class="accreditation-img" src="{% static 'img/logo_acreditacion.png' %}" alt="Logo Acreditación">
+                </div>
+            </div>
+            <div class="meta-box">
+            <div class="page-info">
+                HOJA: <input type="number" id="num_hoja" name="num_hoja" value="1" min="1" class="page-input" required placeholder="HOJA"> DE: 1
+            </div>
+
+            <!-- Campos ocultos para IDs -->
+            <input type="hidden" id="paciente_id" name="paciente_id">
+            <input type="hidden" id="formulario_id" name="formulario_id">
+
+            <!-- Búsqueda de Paciente -->
+            <div style="margin-bottom: 15px; padding: 10px; background-color: #f5f5f5; border-radius: 5px;">
+                <input type="text" id="documento" placeholder="Documento del paciente" 
+                       style="padding: 8px; margin-right: 10px; width: 300px; border: 1px solid #ccc; border-radius: 4px;">
+                <button type="button" id="btnBuscarPaciente" 
+                        style="padding: 8px 20px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    BUSCAR PACIENTE
+                </button>
+                <div id="resultadoPaciente" style="margin-top: 10px;"></div>
+            </div>
+
+            <!-- Información del Paciente -->
+            <div class="patient-info-section">
+                <table class="patient-table">
+                    <tr>
+                        <td class="label-cell">DD/MM/AA</td>
+                        <td class="input-cell">
+                            <input type="date" id="fecha_elabora_paciente" name="fecha_elabora_paciente" class="form-input">
+                        </td>
+                        <td class="label-cell">ASEGURADORA</td>
+                        <td class="input-cell">
+                            <select id="aseguradora_id" name="aseguradora_id" class="form-input">
+                                <option value="">Seleccione...</option>
+                                <!-- Se llenará dinámicamente con JavaScript -->
+                            </select>
+                        </td>
+                        <td class="label-cell">N° HISTORIA CLÍNICA</td>
+                        <td class="input-cell">
+                            <input type="text" id="num_historia_clinica" name="num_historia_clinica" 
+                                   class="form-input" maxlength="255" required>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="label-cell">CC. IDENTIFICACIÓN</td>
+                        <td class="input-cell">
+                            <input type="text" id="num_identificacion" name="num_identificacion" 
+                                   class="form-input" maxlength="255" required>
+                        </td>
+                        <td class="label-cell">NOMBRE Y APELLIDO</td>
+                        <td class="input-cell wide-input" colspan="3">
+                            <input type="text" id="nombres" name="nombres" 
+                                   class="form-input" maxlength="255" required>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="label-cell">DIAGNÓSTICO</td>
+                        <td class="input-cell" colspan="2">
+                            <textarea id="diagnostico" name="diagnostico" 
+                                      class="form-input" rows="2"></textarea>
+                        </td>
+                        <td class="label-cell">EDAD</td>
+                        <td class="input-cell">
+                            <input type="number" id="edad_snapshot" name="edad_snapshot" 
+                                   class="form-input" min="0" step="1">
+                        </td>
+                        <td class="label-cell">GRUPO SANGUÍNEO</td>
+                        <td class="input-cell">
+                            <select id="tipo_sangre" name="tipo_sangre" class="form-input">
+                                <option value="">Seleccione...</option>
+                                <option value="O+">O+</option>
+                                <option value="O-">O-</option>
+                                <option value="A+">A+</option>
+                                <option value="A-">A-</option>
+                                <option value="B+">B+</option>
+                                <option value="B-">B-</option>
+                                <option value="AB+">AB+</option>
+                                <option value="AB-">AB-</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="label-cell">EDAD GESTACIONAL</td>
+                        <td class="input-cell">
+                            <input type="number" id="edad_gestion" name="edad_gestion" 
+                                   class="form-input" min="0" step="1">
+                        </td>
+                        <td class="label-cell">G_P_C_A_V_M_</td>
+                        <td class="input-cell">
+                            <select id="estado" name="estado" class="form-input" required>
+                                <option value="">Seleccione...</option>
+                                <option value="g">G</option>
+                                <option value="p">P</option>
+                                <option value="c">C</option>
+                                <option value="a">A</option>
+                                <option value="v">V</option>
+                                <option value="m">M</option>
+                            </select>
+                        </td>
+                        <td class="label-cell label-cell-center">N° CONTROLES PRENATALES</td>
+                        <td class="input-cell">
+                            <input type="number" id="n_controles_prenatales" name="n_controles_prenatales" 
+                                   class="form-input" min="0" step="1">
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            </div>
+
+            <!-- Tabla Principal de Control -->
+            <div class="main-control-table">
+                <table class="control-grid">
+                    <thead>
+                        <tr>
+                            <th rowspan="2" class="item-col">ITEM</th>
+                            <th rowspan="2" class="param-col">PARÁMETRO</th>
+                            <th colspan="12" class="time-header">HORA</th>
+                        </tr>
+                        <tr class="time-row">
+                            <th class="time-cell">
+                                <input type="datetime-local" class="time-input" 
+                                       data-hora-index="0" placeholder="DD/MM/AAAA HH:MM">
+                            </th>
+                            <th class="time-cell">
+                                <input type="datetime-local" class="time-input" 
+                                       data-hora-index="1" placeholder="DD/MM/AAAA HH:MM">
+                            </th>
+                            <th class="time-cell">
+                                <input type="datetime-local" class="time-input" 
+                                       data-hora-index="2" placeholder="DD/MM/AAAA HH:MM">
+                            </th>
+                            <th class="time-cell">
+                                <input type="datetime-local" class="time-input" 
+                                       data-hora-index="3" placeholder="DD/MM/AAAA HH:MM">
+                            </th>
+                            <th class="time-cell">
+                                <input type="datetime-local" class="time-input" 
+                                       data-hora-index="4" placeholder="DD/MM/AAAA HH:MM">
+                            </th>
+                            <th class="time-cell">
+                                <input type="datetime-local" class="time-input" 
+                                       data-hora-index="5" placeholder="DD/MM/AAAA HH:MM">
+                            </th>
+                            <th class="time-cell">
+                                <input type="datetime-local" class="time-input" 
+                                       data-hora-index="6" placeholder="DD/MM/AAAA HH:MM">
+                            </th>
+                            <th class="time-cell">
+                                <input type="datetime-local" class="time-input" 
+                                       data-hora-index="7" placeholder="DD/MM/AAAA HH:MM">
+                            </th>
+                            <th class="time-cell">
+                                <input type="datetime-local" class="time-input" 
+                                       data-hora-index="8" placeholder="DD/MM/AAAA HH:MM">
+                            </th>
+                            <th class="time-cell">
+                                <input type="datetime-local" class="time-input" 
+                                       data-hora-index="9" placeholder="DD/MM/AAAA HH:MM">
+                            </th>
+                            <th class="time-cell">
+                                <input type="datetime-local" class="time-input" 
+                                       data-hora-index="10" placeholder="DD/MM/AAAA HH:MM">
+                            </th>
+                            <th class="time-cell">
+                                <input type="datetime-local" class="time-input" 
+                                       data-hora-index="11" placeholder="DD/MM/AAAA HH:MM">
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- CONTROLES MATERNOS -->
+                        <tr class="section-header">
+                            <td colspan="14" class="section-title">CONTROLES MATERNOS</td>
+                        </tr>
+                        <tr>
+                            <td class="item-num" data-item-id="1">1</td>
+                            <td class="param-name" data-parametro-id="1" data-parametro-nombre="TENSIÓN ARTERIAL">TENSIÓN ARTERIAL</td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="1" data-hora-index="0" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="1" data-hora-index="1" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="1" data-hora-index="2" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="1" data-hora-index="3" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="1" data-hora-index="4" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="1" data-hora-index="5" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="1" data-hora-index="6" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="1" data-hora-index="7" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="1" data-hora-index="8" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="1" data-hora-index="9" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="1" data-hora-index="10" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="1" data-hora-index="11" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="item-num" data-item-id="2">2</td>
+                            <td class="param-name" data-parametro-id="2" data-parametro-nombre="FREC. CARDIACA">FREC. CARDIACA</td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="2" data-hora-index="0" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="2" data-hora-index="1" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="2" data-hora-index="2" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="2" data-hora-index="3" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="2" data-hora-index="4" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="2" data-hora-index="5" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="2" data-hora-index="6" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="2" data-hora-index="7" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="2" data-hora-index="8" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="2" data-hora-index="9" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="2" data-hora-index="10" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="2" data-hora-index="11" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="item-num" data-item-id="3">3</td>
+                            <td class="param-name" data-parametro-id="3" data-parametro-nombre="FREC. RESPIRATORIA">FREC. RESPIRATORIA</td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="3" data-hora-index="0" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="3" data-hora-index="1" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="3" data-hora-index="2" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="3" data-hora-index="3" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="3" data-hora-index="4" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="3" data-hora-index="5" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="3" data-hora-index="6" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="3" data-hora-index="7" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="3" data-hora-index="8" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="3" data-hora-index="9" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="3" data-hora-index="10" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="3" data-hora-index="11" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="item-num" data-item-id="4">4</td>
+                            <td class="param-name" data-parametro-id="4" data-parametro-nombre="TEMPERATURA">TEMPERATURA</td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="4" data-hora-index="0" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.1">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="4" data-hora-index="1" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.1">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="4" data-hora-index="2" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.1">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="4" data-hora-index="3" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.1">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="4" data-hora-index="4" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.1">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="4" data-hora-index="5" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.1">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="4" data-hora-index="6" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.1">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="4" data-hora-index="7" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.1">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="4" data-hora-index="8" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.1">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="4" data-hora-index="9" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.1">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="4" data-hora-index="10" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.1">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="4" data-hora-index="11" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.1">
+                            </td>
+                        </tr>
+
+                        <!-- CONTRACCIONES UTERINAS -->
+                        <tr class="section-header">
+                            <td colspan="14" class="section-title">CONTRACCIONES UTERINAS</td>
+                        </tr>
+                        <tr>
+                            <td class="item-num" data-item-id="5">5</td>
+                            <td class="param-name" data-parametro-id="5" data-parametro-nombre="FRECUENCIA">FRECUENCIA</td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="5" data-hora-index="0" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="5" data-hora-index="1" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="5" data-hora-index="2" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="5" data-hora-index="3" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="5" data-hora-index="4" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="5" data-hora-index="5" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="5" data-hora-index="6" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="5" data-hora-index="7" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="5" data-hora-index="8" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="5" data-hora-index="9" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="5" data-hora-index="10" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="5" data-hora-index="11" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="item-num" data-item-id="6">6</td>
+                            <td class="param-name" data-parametro-id="6" data-parametro-nombre="DURACIÓN">DURACIÓN</td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="6" data-hora-index="0" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="6" data-hora-index="1" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="6" data-hora-index="2" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="6" data-hora-index="3" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="6" data-hora-index="4" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="6" data-hora-index="5" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="6" data-hora-index="6" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="6" data-hora-index="7" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="6" data-hora-index="8" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="6" data-hora-index="9" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="6" data-hora-index="10" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="6" data-hora-index="11" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="item-num" data-item-id="7">7</td>
+                            <td class="param-name" data-parametro-id="7" data-parametro-nombre="INTENSIDAD">INTENSIDAD</td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="7" data-hora-index="0" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="7" data-hora-index="1" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="7" data-hora-index="2" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="7" data-hora-index="3" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="7" data-hora-index="4" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="7" data-hora-index="5" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="7" data-hora-index="6" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="7" data-hora-index="7" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="7" data-hora-index="8" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="7" data-hora-index="9" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="7" data-hora-index="10" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="7" data-hora-index="11" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                        </tr>
+
+                        <!-- CONTROL FETAL -->
+                        <tr class="section-header">
+                            <td colspan="14" class="section-title">CONTROL FETAL</td>
+                        </tr>
+                        <tr>
+                            <td class="item-num" data-item-id="8">8</td>
+                            <td class="param-name" data-parametro-id="8" data-parametro-nombre="FRECUENCIA CARDIACA FETAL">FRECUENCIA CARDIACA FETAL</td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="8" data-hora-index="0" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="8" data-hora-index="1" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="8" data-hora-index="2" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="8" data-hora-index="3" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="8" data-hora-index="4" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="8" data-hora-index="5" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="8" data-hora-index="6" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="8" data-hora-index="7" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="8" data-hora-index="8" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="8" data-hora-index="9" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="8" data-hora-index="10" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="8" data-hora-index="11" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="item-num" data-item-id="9">9</td>
+                            <td class="param-name" data-parametro-id="9" data-parametro-nombre="MOVIMIENTOS FETALES">MOVIMIENTOS FETALES</td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="9" data-hora-index="0" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="9" data-hora-index="1" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="9" data-hora-index="2" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="9" data-hora-index="3" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="9" data-hora-index="4" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="9" data-hora-index="5" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="9" data-hora-index="6" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="9" data-hora-index="7" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="9" data-hora-index="8" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="9" data-hora-index="9" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="9" data-hora-index="10" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="9" data-hora-index="11" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="item-num" data-item-id="10">10</td>
+                            <td class="param-name" data-parametro-id="10" data-parametro-nombre="PRESENTACIÓN">PRESENTACIÓN</td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="10" data-hora-index="0" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="10" data-hora-index="1" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="10" data-hora-index="2" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="10" data-hora-index="3" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="10" data-hora-index="4" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="10" data-hora-index="5" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="10" data-hora-index="6" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="10" data-hora-index="7" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="10" data-hora-index="8" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="10" data-hora-index="9" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="10" data-hora-index="10" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="10" data-hora-index="11" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                        </tr>
+
+                        <!-- TACTO VAGINAL -->
+                        <tr class="section-header">
+                            <td colspan="14" class="section-title">TACTO VAGINAL</td>
+                        </tr>
+                        <tr>
+                            <td class="item-num" data-item-id="11">11</td>
+                            <td class="param-name" data-parametro-id="11" data-parametro-nombre="MEMBRANAS INTEGRAS">MEMBRANAS INTEGRAS</td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="11" data-hora-index="0" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="11" data-hora-index="1" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="11" data-hora-index="2" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="11" data-hora-index="3" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="11" data-hora-index="4" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="11" data-hora-index="5" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="11" data-hora-index="6" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="11" data-hora-index="7" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="11" data-hora-index="8" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="11" data-hora-index="9" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="11" data-hora-index="10" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="11" data-hora-index="11" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="item-num" data-item-id="12">12</td>
+                            <td class="param-name" data-parametro-id="12" data-parametro-nombre="MEMBRANAS ROTAS">MEMBRANAS ROTAS</td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="12" data-hora-index="0" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="12" data-hora-index="1" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="12" data-hora-index="2" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="12" data-hora-index="3" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="12" data-hora-index="4" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="12" data-hora-index="5" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="12" data-hora-index="6" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="12" data-hora-index="7" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="12" data-hora-index="8" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="12" data-hora-index="9" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="12" data-hora-index="10" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="12" data-hora-index="11" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="item-num" data-item-id="13">13</td>
+                            <td class="param-name" data-parametro-id="13" data-parametro-nombre="LÍQUIDO AMNIOTICO">LÍQUIDO AMNIOTICO</td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="13" data-hora-index="0" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="13" data-hora-index="1" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="13" data-hora-index="2" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="13" data-hora-index="3" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="13" data-hora-index="4" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="13" data-hora-index="5" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="13" data-hora-index="6" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="13" data-hora-index="7" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="13" data-hora-index="8" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="13" data-hora-index="9" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="13" data-hora-index="10" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="13" data-hora-index="11" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="item-num" data-item-id="14">14</td>
+                            <td class="param-name" data-parametro-id="14" data-parametro-nombre="HORA RUPTURA">HORA RUPTURA</td>
+                            <td class="data-cell">
+                                <input type="datetime-local" class="data-input" 
+                                       data-parametro-id="14" data-hora-index="0" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="datetime-local" class="data-input" 
+                                       data-parametro-id="14" data-hora-index="1" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="datetime-local" class="data-input" 
+                                       data-parametro-id="14" data-hora-index="2" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="datetime-local" class="data-input" 
+                                       data-parametro-id="14" data-hora-index="3" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="datetime-local" class="data-input" 
+                                       data-parametro-id="14" data-hora-index="4" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="datetime-local" class="data-input" 
+                                       data-parametro-id="14" data-hora-index="5" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="datetime-local" class="data-input" 
+                                       data-parametro-id="14" data-hora-index="6" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="datetime-local" class="data-input" 
+                                       data-parametro-id="14" data-hora-index="7" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="datetime-local" class="data-input" 
+                                       data-parametro-id="14" data-hora-index="8" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="datetime-local" class="data-input" 
+                                       data-parametro-id="14" data-hora-index="9" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="datetime-local" class="data-input" 
+                                       data-parametro-id="14" data-hora-index="10" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="datetime-local" class="data-input" 
+                                       data-parametro-id="14" data-hora-index="11" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="item-num" data-item-id="15">15</td>
+                            <td class="param-name" data-parametro-id="15" data-parametro-nombre="DILATACIÓN">DILATACIÓN</td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="15" data-hora-index="0" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.1">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="15" data-hora-index="1" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.1">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="15" data-hora-index="2" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.1">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="15" data-hora-index="3" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.1">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="15" data-hora-index="4" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.1">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="15" data-hora-index="5" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.1">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="15" data-hora-index="6" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.1">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="15" data-hora-index="7" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.1">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="15" data-hora-index="8" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.1">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="15" data-hora-index="9" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.1">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="15" data-hora-index="10" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.1">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="15" data-hora-index="11" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.1">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="item-num" data-item-id="16">16</td>
+                            <td class="param-name" data-parametro-id="16" data-parametro-nombre="BORRAMIENTO">BORRAMIENTO</td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="16" data-hora-index="0" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.1">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="16" data-hora-index="1" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.1">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="16" data-hora-index="2" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.1">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="16" data-hora-index="3" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.1">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="16" data-hora-index="4" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.1">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="16" data-hora-index="5" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.1">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="16" data-hora-index="6" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.1">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="16" data-hora-index="7" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.1">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="16" data-hora-index="8" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.1">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="16" data-hora-index="9" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.1">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="16" data-hora-index="10" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.1">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="16" data-hora-index="11" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.1">
+                            </td>
+                        </tr>
+
+                        <!-- MONITOREO FETAL -->
+                        <tr class="section-header">
+                            <td colspan="14" class="section-title">MONITOREO FETAL</td>
+                        </tr>
+                        <tr>
+                            <td class="item-num" data-item-id="17">17</td>
+                            <td class="param-name" data-parametro-id="17" data-parametro-nombre="HORA">HORA</td>
+                            <td class="data-cell">
+                                <input type="datetime-local" class="data-input" 
+                                       data-parametro-id="17" data-hora-index="0" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="datetime-local" class="data-input" 
+                                       data-parametro-id="17" data-hora-index="1" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="datetime-local" class="data-input" 
+                                       data-parametro-id="17" data-hora-index="2" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="datetime-local" class="data-input" 
+                                       data-parametro-id="17" data-hora-index="3" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="datetime-local" class="data-input" 
+                                       data-parametro-id="17" data-hora-index="4" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="datetime-local" class="data-input" 
+                                       data-parametro-id="17" data-hora-index="5" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="datetime-local" class="data-input" 
+                                       data-parametro-id="17" data-hora-index="6" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="datetime-local" class="data-input" 
+                                       data-parametro-id="17" data-hora-index="7" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="datetime-local" class="data-input" 
+                                       data-parametro-id="17" data-hora-index="8" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="datetime-local" class="data-input" 
+                                       data-parametro-id="17" data-hora-index="9" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="datetime-local" class="data-input" 
+                                       data-parametro-id="17" data-hora-index="10" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="datetime-local" class="data-input" 
+                                       data-parametro-id="17" data-hora-index="11" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="item-num" data-item-id="18">18</td>
+                            <td class="param-name" data-parametro-id="18" data-parametro-nombre="CATEGORIA">CATEGORIA</td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="18" data-hora-index="0" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="18" data-hora-index="1" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="18" data-hora-index="2" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="18" data-hora-index="3" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="18" data-hora-index="4" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="18" data-hora-index="5" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="18" data-hora-index="6" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="18" data-hora-index="7" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="18" data-hora-index="8" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="18" data-hora-index="9" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="18" data-hora-index="10" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                            <td class="data-cell">
+                                <input type="text" class="data-input" 
+                                       data-parametro-id="18" data-hora-index="11" 
+                                       data-tipo-valor="text" data-campo-codigo="valor">
+                            </td>
+                        </tr>
+
+                        <!-- OXITOCINA -->
+                        <tr class="section-header">
+                            <td colspan="14" class="section-title">OXITOCINA</td>
+                        </tr>
+                        <tr>
+                            <td class="item-num" data-item-id="19">19</td>
+                            <td class="param-name" data-parametro-id="19" data-parametro-nombre="MILIUNIDADES">MILIUNIDADES</td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="19" data-hora-index="0" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="19" data-hora-index="1" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="19" data-hora-index="2" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="19" data-hora-index="3" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="19" data-hora-index="4" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="19" data-hora-index="5" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="19" data-hora-index="6" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="19" data-hora-index="7" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="19" data-hora-index="8" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="19" data-hora-index="9" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="19" data-hora-index="10" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="19" data-hora-index="11" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="item-num" data-item-id="20">20</td>
+                            <td class="param-name" data-parametro-id="20" data-parametro-nombre="CC/H">CC/H</td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="20" data-hora-index="0" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="20" data-hora-index="1" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="20" data-hora-index="2" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="20" data-hora-index="3" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="20" data-hora-index="4" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="20" data-hora-index="5" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="20" data-hora-index="6" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="20" data-hora-index="7" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="20" data-hora-index="8" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="20" data-hora-index="9" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="20" data-hora-index="10" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                            <td class="data-cell">
+                                <input type="number" class="data-input" 
+                                       data-parametro-id="20" data-hora-index="11" 
+                                       data-tipo-valor="number" data-campo-codigo="valor" step="0.01">
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pie del Formulario -->
+            <div class="form-footer">
+                <div class="responsible-field">
+                    <label>RESPONSABLE:</label>
+                    <input type="text" id="responsable" name="responsable" 
+                           class="responsible-input" required maxlength="255">
+                </div>
+                <div class="form-actions">
+                    <button type="submit" id="btn-guardar" class="btn btn-primary">Guardar Formulario</button>
+                    <button type="button" id="btnGenerarPDF" class="btn btn-secondary" onclick="descargarPDF()">Descargar PDF</button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <script src="{% static 'js/main.js' %}"></script>
+
+</body>
+</html>
