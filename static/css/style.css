@@ -388,7 +388,7 @@ textarea.form-input {
 .control-grid {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.95rem;
+  font-size: 0.8rem; /* Reducido de 0.95rem */
 }
 
 .control-grid th,
@@ -434,12 +434,12 @@ textarea.form-input {
 
 .time-input {
   width: 100%;
-  padding: 0.25rem;
+  padding: 0.15rem; /* Padding reducido */
   border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 0.25rem;
+  border-radius: 0.2rem;
   background: rgba(255, 255, 255, 0.1);
   color: white;
-  font-size: 0.85rem;
+  font-size: 0.75rem; /* Fuente más pequeña para que quepa en menos ancho */
 }
 
 .time-input::placeholder {
@@ -459,17 +459,47 @@ textarea.form-input {
 }
 
 .data-cell {
-  padding: 0.25rem;
-  min-width: 80px;
+  padding: 0.1rem;
+  min-width: 45px; /* Reducido aún más a lo ancho */
+}
+
+.cell-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+}
+
+.input-group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  width: 100%;
+}
+
+.field-label {
+  font-size: 0.55rem; /* Ligeramente más pequeño para ahorrar ancho */
+  font-weight: bold;
+  color: #64748b;
+  min-width: 18px; /* Ancho de etiqueta reducido */
+  text-transform: uppercase;
+  background: #f1f5f9;
+  padding: 1px;
+  border-radius: 2px;
+  border: 1px solid #e2e8f0;
+  line-height: 1;
+  text-align: center;
 }
 
 .data-input {
-  width: 100%;
-  padding: 0.35rem 0.5rem;
+  flex: 1; /* Ocupa el espacio restante */
+  min-width: 0; /* Permite que el input se encoja */
+  padding: 0.1rem 0.15rem; /* Padding lateral mínimo */
   border: 1px solid var(--color-borde);
-  border-radius: 0.25rem;
-  font-size: 0.9rem;
+  border-radius: 0.2rem;
+  font-size: 0.75rem;
   text-align: center;
+  height: 20px; /* Ligeramente más bajo también */
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 

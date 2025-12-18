@@ -310,6 +310,89 @@ def obtener_valor(valor):
     return ""
 
 
+def seccion_grid_mediciones(c, formulario, x, y, ancho_total):
+    """
+    Dibuja el grid de mediciones estilo formulario (12 columnas de tiempo).
+    """
+    from .models import Item, Medicion, MedicionValor
+    
+    # 1. Obtener mediciones agrupadas por hora
+    mediciones = Medicion.objects.filter(formulario=formulario).prefetch_related('valores__campo', 'parametro')
+    horas_unicas = sorted(list(set(m.tomada_en for m in mediciones)))
+    
+    # Limitar a 10 horas para el grid
+    horas_mostrar = horas_unicas[:10]
+    
+    # 2. Definir anchos de columna
+    col_item = 2.5*cm
+    col_param = 3.5*cm
+    col_hora = (ancho_total - col_item - col_param - 1*cm) / 10
+    
+    # 3. Dibujar Encabezado del Grid
+    c.setFont("Helvetica-Bold", 8)
+    c.setFillColor(colors.lightgrey)
+    c.rect(x, y-1*cm, ancho_total - 1*cm, 1*cm, fill=1)
+    c.setFillColor(colors.black)
+    
+    c.drawString(x + 0.2*cm, y-0.6*cm, "ITEM")
+    c.drawString(x + col_item + 0.2*cm, y-0.6*cm, "PARÁMETRO")
+    
+    # Dibujar Horas
+    for i, hora in enumerate(horas_mostrar):
+        hora_str = hora.strftime('%H:%M')
+        c.setFont("Helvetica-Bold", 7)
+        c.drawCentredString(x + col_item + col_param + (i * col_hora) + col_hora/2, y-0.6*cm, hora_str)
+    
+    y -= 1*cm
+    
+    # 4. Dibujar Filas por Item/Parámetro
+    items = Item.objects.prefetch_related('parametros__campos').all().order_by('id')
+    
+    for item in items:
+        # Título de Sección (Item)
+        c.setFont("Helvetica-Bold", 8)
+        c.setFillColor(colors.HexColor('#d1d5db'))
+        c.rect(x, y-0.6*cm, ancho_total - 1*cm, 0.6*cm, fill=1)
+        c.setFillColor(colors.black)
+        c.drawString(x + 0.5*cm, y-0.4*cm, item.nombre.upper())
+        y -= 0.6*cm
+        
+        for param in item.parametros.all():
+            campos = param.campos.all()
+            altura_fila = max(0.6*cm, 0.4*cm * campos.count())
+            
+            # Borde de la fila
+            c.rect(x, y-altura_fila, ancho_total - 1*cm, altura_fila)
+            
+            # Nombre del Parámetro
+            c.setFont("Helvetica", 7)
+            c.drawString(x + col_item + 0.2*cm, y - 0.4*cm, param.nombre.upper())
+            
+            # Dibujar Valores para cada hora
+            for i, hora in enumerate(horas_mostrar):
+                medicion_h = next((m for m in mediciones if m.tomada_en == hora and m.parametro_id == param.id), None)
+                
+                if medicion_h:
+                    for idx_c, campo in enumerate(campos):
+                        valor_obj = next((v for v in medicion_h.valores.all() if v.campo_id == campo.id), None)
+                        if valor_obj:
+                            texto_v = obtener_valor(valor_obj)
+                            c.setFont("Helvetica", 6)
+                            # Ajustar posición si hay múltiples campos
+                            offset_y = (idx_c * 0.3*cm) if campos.count() > 1 else 0
+                            c.drawCentredString(x + col_item + col_param + (i * col_hora) + col_hora/2, y - 0.4*cm - offset_y, texto_v)
+            
+            y -= altura_fila
+            
+            # Control de página
+            if y < 3*cm:
+                c.showPage()
+                y = A4[1] - 2*cm
+                # (Opcional: repetir encabezado si se desea)
+
+    return y
+
+
 def seccion_mediciones(c, formulario, x, y):
     """
     Sección completa de mediciones (CLAVE)

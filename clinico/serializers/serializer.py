@@ -227,7 +227,8 @@ class MedicionValorSerializer(serializers.ModelSerializer):
         queryset=CampoParametro.objects.all(),
         source='campo',
         write_only=True,
-        required=True
+        required=False,
+        allow_null=True
     )
     
     class Meta:
@@ -242,6 +243,8 @@ class MedicionValorSerializer(serializers.ModelSerializer):
             'valor_json',
         ]
         read_only_fields = ['id']
+        # Desactivamos validadores de unicidad para permitir update_or_create manual
+        validators = []
     
     def validate(self, data):
         """Valida que solo un tipo de valor esté presente"""
@@ -335,19 +338,52 @@ class FormularioCreateSerializer(serializers.ModelSerializer):
 
 
 class MedicionCreateSerializer(serializers.ModelSerializer):
-    """Serializador simplificado para crear Mediciones"""
+    """Serializador para crear Mediciones con valores anidados"""
+    valores = MedicionValorSerializer(many=True, required=False)
     
     class Meta:
         model = Medicion
         fields = [
+            'id',
             'formulario',
             'parametro',
             'tomada_en',
             'observacion',
+            'valores',
         ]
-        extra_kwargs = {
-            'formulario': {'required': True},
-            'parametro': {'required': True},
-            'tomada_en': {'required': True},
-        }
+        # Eliminamos validadores automáticos de unicidad para manejarlo 
+        # manualmente en el método create con get_or_create
+        validators = []
+    
+    def create(self, validated_data):
+        valores_data = validated_data.pop('valores', [])
+        # Manejar si ya existe la medición para el mismo formulario, parámetro y hora
+        formulario = validated_data.get('formulario')
+        parametro = validated_data.get('parametro')
+        tomada_en = validated_data.get('tomada_en')
+        
+        medicion, created = Medicion.objects.get_or_create(
+            formulario=formulario,
+            parametro=parametro,
+            tomada_en=tomada_en,
+            defaults=validated_data
+        )
+        
+        # Si no se creó (ya existe), actualizamos la observación si viene
+        if not created and 'observacion' in validated_data:
+            medicion.observacion = validated_data['observacion']
+            medicion.save()
+
+        # Crear o actualizar valores
+        for valor_data in valores_data:
+            campo = valor_data.get('campo')
+            if campo:
+                MedicionValor.objects.update_or_create(
+                    medicion=medicion,
+                    campo=campo,
+                    defaults=valor_data
+                )
+            
+        return medicion
+
 

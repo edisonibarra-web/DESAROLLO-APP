@@ -62,10 +62,26 @@ class PacienteViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny]
     lookup_field = 'id'
     
+    def get_queryset(self):
+        """
+        Permite filtrar pacientes por num_identificacion o num_historia_clinica
+        Ejemplo: /api/pacientes/?num_identificacion=123456
+        """
+        queryset = Paciente.objects.all()
+        
+        num_identificacion = self.request.query_params.get('num_identificacion', None)
+        if num_identificacion:
+            queryset = queryset.filter(num_identificacion=num_identificacion.strip())
+            
+        num_historia_clinica = self.request.query_params.get('num_historia_clinica', None)
+        if num_historia_clinica:
+            queryset = queryset.filter(num_historia_clinica=num_historia_clinica.strip())
+            
+        return queryset
+    
     def get_serializer_class(self):
         """Retorna el serializador apropiado según la acción"""
-        if self.action == 'list':
-            return PacienteListSerializer
+        # Usamos PacienteSerializer para todo, para asegurar que incluya fecha_nacimiento
         return PacienteSerializer
     
     @action(detail=True, methods=['get'])
@@ -269,8 +285,66 @@ class MedicionValorViewSet(viewsets.ModelViewSet):
     lookup_field = 'id'
 
 
+def vista_impresion_formulario(request, formulario_id):
+    """
+    Vista optimizada para impresión en formato A4 (HTML a PDF).
+    """
+    formulario = get_object_or_404(Formulario.objects.select_related('paciente', 'aseguradora'), id=formulario_id)
+    
+    # Obtener items, parámetros y campos
+    items = Item.objects.prefetch_related('parametros__campos').all().order_by('id')
+    
+    # Obtener todas las mediciones del formulario
+    mediciones_qs = Medicion.objects.filter(formulario=formulario).prefetch_related('valores__campo')
+    
+    # Organizar horas únicas (columnas) para el encabezado
+    horas_unicas = sorted(list(set(m.tomada_en for m in mediciones_qs)))[:10]
+    
+    # Mapear mediciones para fácil acceso en el template: {param_id: {hora_iso: {campo_id: valor}}}
+    grid_data = {}
+    for m in mediciones_qs:
+        p_id = m.parametro_id
+        h_str = m.tomada_en.isoformat()
+        
+        if p_id not in grid_data:
+            grid_data[p_id] = {}
+        if h_str not in grid_data[p_id]:
+            grid_data[p_id][h_str] = {}
+            
+        for v in m.valores.all():
+            valor = ""
+            if v.valor_number is not None:
+                valor = float(v.valor_number)
+                if valor.is_integer(): valor = int(valor)
+            elif v.valor_text:
+                valor = v.valor_text
+            elif v.valor_boolean is not None:
+                valor = "SÍ" if v.valor_boolean else "NO"
+                
+            grid_data[p_id][h_str][v.campo_id] = valor
+
+    context = {
+        'f': formulario,
+        'p': formulario.paciente,
+        'items': items,
+        'horas': horas_unicas,
+        'grid_data': grid_data,
+    }
+    return render(request, 'impresion_formulario.html', context)
+
+
 def formulario_clinico(request):
-    return render(request, 'formulario_clinico.html')
+    # Obtener todos los items con sus parámetros y campos ordenados
+    items = Item.objects.prefetch_related(
+        'parametros',
+        'parametros__campos'
+    ).all().order_by('id')
+    
+    context = {
+        'items': items
+    }
+    
+    return render(request, 'formulario_clinico.html', context)
 
 
 def generar_pdf_formulario(request, formulario_id):
@@ -308,9 +382,10 @@ def generar_pdf_formulario(request, formulario_id):
     y -= 3.2*cm
     
     y = datos_paciente(c, formulario, margen_x, y)
-    y -= 3*cm
+    y -= 1*cm
     
-    seccion_mediciones(c, formulario, margen_x, y)
+    from .pdf_utils import seccion_grid_mediciones
+    seccion_grid_mediciones(c, formulario, margen_x, y, ancho)
     
     # Finalizar página y guardar
     c.showPage()
