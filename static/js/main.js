@@ -202,9 +202,9 @@ async function buscarPaciente() {
                 }
             }
             
-            mostrarMensaje('Paciente encontrado ', 'success');
+            mostrarMensaje('Paciente encontrado', 'success');
         } else {
-            mostrarMensaje('Paciente no encontrado. Puede crear uno nuevo.', 'info');
+            mostrarMensaje('Paciente no encontrado', 'info');
             // Limpiar los campos si no se encontró el paciente
             limpiarFormulario();
             // Mantener los valores de búsqueda para que el usuario sepa qué buscó
@@ -278,18 +278,15 @@ async function guardarPaciente() {
         let alertMessage = '';
         
         if (error.message.includes('num_historia_clinica') || error.message.includes('historia clínica')) {
-            mensajeError += 'El número de historia clínica ya existe o es inválido.';
-            alertMessage = '⚠️ ERROR: El número de historia clínica ya está registrado.\n\nPor favor, use un número diferente o busque el paciente existente.';
+            mensajeError = 'Error al guardar paciente';
         } else if (error.message.includes('num_identificacion') || error.message.includes('identificación')) {
-            mensajeError += 'El número de identificación ya existe o es inválido.';
-            alertMessage = '⚠️ ERROR: El número de identificación ya está registrado.\n\nPor favor, use un número diferente o busque el paciente existente.';
+            mensajeError = 'Error al guardar paciente';
         } else {
-            mensajeError += error.message;
-            alertMessage = `⚠️ ERROR al guardar paciente:\n\n${error.message}`;
+            mensajeError = 'Error al guardar paciente';
         }
         
         // Mostrar mensaje en la interfaz
-        mostrarMensaje(alertMessage || mensajeError, 'error');
+        mostrarMensaje(mensajeError, 'error');
         throw error;
     }
 }
@@ -297,6 +294,20 @@ async function guardarPaciente() {
 // Guardar formulario
 async function guardarFormulario() {
     console.log('Iniciando guardarFormulario...');
+    
+    // Verificar si es una actualización y mostrar confirmación
+    const btnGuardar = document.getElementById('btn-guardar');
+    const esActualizacion = btnGuardar && btnGuardar.getAttribute('data-es-actualizacion') === 'true';
+    const formularioId = document.getElementById('formulario_id').value;
+    
+    if (esActualizacion || formularioId) {
+        const confirmar = confirm('¿En verdad desea modificar la información?');
+        if (!confirmar) {
+            console.log('Actualización cancelada por el usuario');
+            return;
+        }
+    }
+    
     try {
         console.log('Guardando paciente...');
         // Primero guardar/actualizar paciente
@@ -306,7 +317,7 @@ async function guardarFormulario() {
         console.log('Paciente ID después de guardar:', pacienteId);
         if (!pacienteId) {
             console.error('No se pudo obtener el ID del paciente');
-            mostrarMensaje('Debe guardar el paciente primero. Verifique que los campos de paciente estén completos.', 'error');
+            mostrarMensaje('Complete los campos del paciente', 'error');
             return;
         }
         
@@ -355,7 +366,6 @@ async function guardarFormulario() {
         
         console.log('Datos del formulario preparados:', formularioData);
         
-        const formularioId = document.getElementById('formulario_id').value;
         let formulario;
         
         if (formularioId) {
@@ -384,7 +394,8 @@ async function guardarFormulario() {
         // Actualizar el ID del formulario en el campo oculto
         document.getElementById('formulario_id').value = formulario.id;
         
-        mostrarMensaje('¡Formulario y mediciones guardados con éxito!', 'success');
+        const mensaje = esActualizacion ? 'Datos actualizados' : 'Datos guardados';
+        mostrarMensaje(mensaje, 'success');
         
         // Limpiar el formulario después de un breve delay para que vean el mensaje
         setTimeout(() => {
@@ -395,20 +406,14 @@ async function guardarFormulario() {
     } catch (error) {
         console.error('Error al guardar formulario:', error);
         
-        // Mensaje de alerta más claro
-        let alertMessage = '⚠️ ERROR al guardar formulario:\n\n';
+        // Mensaje de error genérico
+        let alertMessage = 'Error al guardar formulario';
         
-        if (error.message.includes('num_identificacion') || error.message.includes('identificación')) {
-            alertMessage += 'El número de identificación del paciente ya está registrado.\n\nPor favor, use un número diferente o busque el paciente existente.';
-        } else if (error.message.includes('unique') || error.message.includes('codigo, version, num_hoja')) {
-            alertMessage += 'Ya existe un formulario con estos valores (código, versión, hoja).\n\nPor favor, cambie alguno de estos valores.';
-        } else if (error.message.includes('Campos requeridos')) {
-            alertMessage += error.message;
-        } else {
-            alertMessage += error.message;
+        if (error.message.includes('Campos requeridos')) {
+            alertMessage = 'Complete los campos requeridos';
         }
         
-        mostrarMensaje(alertMessage || ('Error al guardar formulario: ' + error.message), 'error');
+        mostrarMensaje(alertMessage, 'error');
     }
 }
 
@@ -484,6 +489,94 @@ function mostrarMensaje(mensaje, tipo = 'info') {
     }
 }
 
+// Función para cambiar el texto del botón entre "Guardar" y "Actualizar"
+function actualizarTextoBoton(esActualizacion) {
+    const btnGuardar = document.getElementById('btn-guardar');
+    if (btnGuardar) {
+        if (esActualizacion) {
+            btnGuardar.textContent = 'Actualizar Formulario';
+            btnGuardar.setAttribute('data-es-actualizacion', 'true');
+        } else {
+            btnGuardar.textContent = 'Guardar Formulario';
+            btnGuardar.removeAttribute('data-es-actualizacion');
+        }
+    }
+}
+
+// Función para buscar formularios existentes del paciente
+async function buscarFormularioExistente(pacienteId, numIdentificacion) {
+    try {
+        // Buscar formularios por paciente o por num_identificacion
+        let formularios = null;
+        if (pacienteId) {
+            formularios = await apiRequest(`/formularios/?paciente=${pacienteId}`);
+        } else if (numIdentificacion) {
+            formularios = await apiRequest(`/formularios/?paciente__num_identificacion=${numIdentificacion}`);
+        }
+        
+        if (!formularios) return null;
+        
+        // DRF devuelve resultados paginados con formato {results: [...]}
+        const listaFormularios = formularios?.results || formularios || [];
+        
+        if (listaFormularios.length > 0) {
+            // Retornar el formulario más reciente
+            return listaFormularios[0];
+        }
+        return null;
+    } catch (error) {
+        console.error('Error al buscar formulario existente:', error);
+        return null;
+    }
+}
+
+// Función para bloquear/desbloquear una columna completa
+function bloquearColumna(horaIndex, bloquear = true) {
+    // Bloquear todos los inputs de datos de esa columna
+    const dataInputs = document.querySelectorAll(`.data-input[data-hora-index="${horaIndex}"]`);
+    dataInputs.forEach(input => {
+        if (bloquear) {
+            input.disabled = true;
+            input.readOnly = true;
+            input.style.backgroundColor = '#f0f0f0';
+            input.style.cursor = 'not-allowed';
+            input.setAttribute('data-bloqueado', 'true');
+        } else {
+            input.disabled = false;
+            input.readOnly = false;
+            input.style.backgroundColor = '';
+            input.style.cursor = '';
+            input.removeAttribute('data-bloqueado');
+        }
+    });
+    
+    // Bloquear el input de tiempo de esa columna
+    const timeInput = document.querySelector(`.time-input[data-hora-index="${horaIndex}"]`);
+    if (timeInput) {
+        if (bloquear) {
+            timeInput.disabled = true;
+            timeInput.readOnly = true;
+            timeInput.style.backgroundColor = '#f0f0f0';
+            timeInput.style.cursor = 'not-allowed';
+            timeInput.setAttribute('data-bloqueado', 'true');
+        } else {
+            timeInput.disabled = false;
+            timeInput.readOnly = false;
+            timeInput.style.backgroundColor = '';
+            timeInput.style.cursor = '';
+            timeInput.removeAttribute('data-bloqueado');
+        }
+    }
+}
+
+// Función para desbloquear todas las columnas
+function desbloquearTodasLasColumnas() {
+    const timeInputs = document.querySelectorAll('.time-input');
+    timeInputs.forEach((input, index) => {
+        bloquearColumna(index, false);
+    });
+}
+
 // Limpiar todos los campos del formulario y el grid
 function limpiarFormulario() {
     console.log('🧹 Limpiando campos del formulario...');
@@ -501,11 +594,29 @@ function limpiarFormulario() {
         if (el) el.value = '';
     });
 
+    // Desbloquear todas las columnas antes de limpiar
+    desbloquearTodasLasColumnas();
+
     // Limpiar el grid de datos
-    document.querySelectorAll('.data-input').forEach(input => input.value = '');
+    document.querySelectorAll('.data-input').forEach(input => {
+        input.value = '';
+        input.disabled = false;
+        input.readOnly = false;
+        input.style.backgroundColor = '';
+        input.style.cursor = '';
+    });
     
     // Limpiar los inputs de tiempo
-    document.querySelectorAll('.time-input').forEach(input => input.value = '');
+    document.querySelectorAll('.time-input').forEach(input => {
+        input.value = '';
+        input.disabled = false;
+        input.readOnly = false;
+        input.style.backgroundColor = '';
+        input.style.cursor = '';
+    });
+    
+    // Restablecer el botón a "Guardar"
+    actualizarTextoBoton(false);
 }
 
 // Inicialización
@@ -593,10 +704,25 @@ document.addEventListener('DOMContentLoaded', function() {
                         document.getElementById('edad_snapshot').value = edad;
                     }
                     
-                    mostrarMensaje(`✅ Paciente encontrado: ${paciente.nombres}`, 'success');
+                    // Buscar formulario existente para este paciente
+                    const formularioExistente = await buscarFormularioExistente(paciente.id, cedula);
+                    if (formularioExistente) {
+                        console.log('📄 Formulario existente encontrado:', formularioExistente);
+                        document.getElementById('formulario_id').value = formularioExistente.id;
+                        // Cargar datos del formulario
+                        await cargarMedicionesEnGrid(formularioExistente.id);
+                        // Cambiar botón a "Actualizar"
+                        actualizarTextoBoton(true);
+                        mostrarMensaje('Datos encontrados', 'success');
+                    } else {
+                        // No hay formulario, mantener botón en "Guardar"
+                        actualizarTextoBoton(false);
+                        mostrarMensaje('Paciente encontrado', 'success');
+                    }
+                    
                     console.log(`✅ Paciente encontrado:`, paciente);
                 } else {
-                    mostrarMensaje('⚠️ No se encontró ningún paciente con ese número de identificación', 'info');
+                    mostrarMensaje('Paciente no encontrado', 'info');
                     console.log('ℹ️ No se encontró paciente con ese número de identificación');
                     
                     // Limpiar formulario excepto el campo de búsqueda
@@ -672,6 +798,21 @@ document.addEventListener('DOMContentLoaded', function() {
                         document.getElementById('edad_snapshot').value = edad;
                     }
                     
+                    // Buscar formulario existente para este paciente
+                    const formularioExistente = await buscarFormularioExistente(paciente.id, cedula);
+                    if (formularioExistente) {
+                        console.log('📄 Formulario existente encontrado:', formularioExistente);
+                        document.getElementById('formulario_id').value = formularioExistente.id;
+                        // Cargar datos del formulario
+                        await cargarMedicionesEnGrid(formularioExistente.id);
+                        // Cambiar botón a "Actualizar"
+                        actualizarTextoBoton(true);
+                        mostrarMensaje('Datos encontrados', 'info');
+                    } else {
+                        // No hay formulario, mantener botón en "Guardar"
+                        actualizarTextoBoton(false);
+                    }
+                    
                     console.log(`✅ Paciente encontrado: ${paciente.nombres}`);
                 } else {
                     console.log('ℹ️ No se encontró paciente con ese número de identificación');
@@ -712,12 +853,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('✅ Formulario guardado exitosamente');
             } catch (error) {
                 console.error('❌ Error en guardarFormulario:', error);
-                mostrarMensaje('Error al guardar formulario: ' + error.message, 'error');
+                mostrarMensaje('Error al guardar formulario', 'error');
             } finally {
-                // Rehabilitar el botón
+                // Rehabilitar el botón y restaurar texto según si es actualización
                 if (btnGuardar) {
                     btnGuardar.disabled = false;
-                    btnGuardar.textContent = 'Guardar Formulario';
+                    const formularioId = document.getElementById('formulario_id').value;
+                    if (formularioId) {
+                        btnGuardar.textContent = 'Actualizar Formulario';
+                    } else {
+                        btnGuardar.textContent = 'Guardar Formulario';
+                    }
                 }
             }
         });
@@ -745,56 +891,129 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('✅ Formulario guardado exitosamente desde botón');
             } catch (error) {
                 console.error('❌ Error al guardar desde botón:', error);
-                mostrarMensaje('Error al guardar formulario: ' + error.message, 'error');
+                mostrarMensaje('Error al guardar formulario', 'error');
             } finally {
-                // Rehabilitar el botón
+                // Rehabilitar el botón y restaurar texto según si es actualización
                 btnGuardar.disabled = false;
-                btnGuardar.textContent = 'Guardar Formulario';
+                const formularioId = document.getElementById('formulario_id').value;
+                if (formularioId) {
+                    btnGuardar.textContent = 'Actualizar Formulario';
+                } else {
+                    btnGuardar.textContent = 'Guardar Formulario';
+                }
             }
         });
     } else {
         console.error('❌ ERROR: No se encontró el botón con id "btn-guardar"');
     }
     
-    // Event listener para buscar paciente por documento
-    const btnBuscarPaciente = document.getElementById("btnBuscarPaciente");
-    if (btnBuscarPaciente) {
-        btnBuscarPaciente.addEventListener("click", async function () {
-            const documento = document.getElementById("documento").value;
+    // Función compartida para buscar por documento
+    async function buscarPorDocumento(documento) {
+        if (!documento) {
+            mostrarMensaje("Ingrese el documento del paciente", "error");
+            return;
+        }
 
-            if (!documento) {
-                mostrarMensaje("Ingrese el documento del paciente", "error");
-                return;
-            }
+        // Limpiar formulario antes de buscar
+        limpiarFormulario();
+        // Restaurar el valor del documento buscado
+        const documentoInput = document.getElementById('documento');
+        if (documentoInput) {
+            documentoInput.value = documento;
+        }
 
-            // Limpiar formulario antes de buscar
-            limpiarFormulario();
-            // Restaurar el valor del documento buscado
-            document.getElementById('documento').value = documento;
-
-            try {
-                // Buscar formulario por num_identificacion del paciente usando el filtro de DRF
-                // La búsqueda se hace en la tabla formulario filtrando por paciente__num_identificacion
-                const formularios = await apiRequest(`/formularios/?paciente__num_identificacion=${documento}`);
-                console.log('🔍 Formularios encontrados para el documento:', formularios);
+        try {
+            // Buscar formulario por num_identificacion del paciente usando el filtro de DRF
+            // La búsqueda se hace en la tabla formulario filtrando por paciente__num_identificacion
+            const formularios = await apiRequest(`/formularios/?paciente__num_identificacion=${documento}`);
+            console.log('🔍 Formularios encontrados para el documento:', formularios);
+            
+            // DRF devuelve resultados paginados con formato {results: [...]}
+            const listaFormularios = formularios?.results || formularios || [];
+            
+            if (listaFormularios.length > 0) {
+                // Tomar el formulario más reciente (ya está ordenado por fecha_actualizacion descendente)
+                const formulario = listaFormularios[0];
+                const paciente = formulario.paciente;
                 
-                // DRF devuelve resultados paginados con formato {results: [...]}
-                const listaFormularios = formularios?.results || formularios || [];
+                console.log("📄 Formulario seleccionado:", formulario);
+                console.log("👤 Paciente asociado al formulario:", paciente);
                 
-                if (listaFormularios.length > 0) {
-                    // Tomar el formulario más reciente (ya está ordenado por fecha_actualizacion descendente)
-                    const formulario = listaFormularios[0];
-                    const paciente = formulario.paciente;
-                    
-                    console.log("📄 Formulario seleccionado:", formulario);
-                    console.log("👤 Paciente asociado al formulario:", paciente);
-                    
-                    // Llenar campos del paciente
+                // Llenar campos del paciente
+                if (document.getElementById('paciente_id')) {
+                    document.getElementById('paciente_id').value = paciente.id;
+                }
+                if (document.getElementById('formulario_id')) {
+                    document.getElementById('formulario_id').value = formulario.id;
+                }
+                if (document.getElementById('num_historia_clinica')) {
+                    document.getElementById('num_historia_clinica').value = paciente.num_historia_clinica || '';
+                }
+                if (document.getElementById('num_identificacion')) {
+                    document.getElementById('num_identificacion').value = paciente.num_identificacion || '';
+                }
+                if (document.getElementById('nombres')) {
+                    document.getElementById('nombres').value = paciente.nombres || '';
+                }
+                if (document.getElementById('tipo_sangre') && paciente.tipo_sangre) {
+                    document.getElementById('tipo_sangre').value = paciente.tipo_sangre || '';
+                }
+                if (document.getElementById('fecha_elabora_paciente') && paciente.fecha_nacimiento) {
+                    document.getElementById('fecha_elabora_paciente').value = paciente.fecha_nacimiento || '';
+                }
+                
+                // Llenar campos del formulario
+                if (document.getElementById('fecha_elabora_paciente') && !paciente.fecha_nacimiento) {
+                    // Si no hay fecha de nacimiento del paciente, usar la fecha del formulario
+                    document.getElementById('fecha_elabora_paciente').value = formulario.fecha_elabora || '';
+                }
+                if (document.getElementById('codigo')) {
+                    document.getElementById('codigo').value = formulario.codigo || '';
+                }
+                if (document.getElementById('num_hoja')) {
+                    document.getElementById('num_hoja').value = formulario.num_hoja || '';
+                }
+                if (document.getElementById('estado')) {
+                    document.getElementById('estado').value = formulario.estado || '';
+                }
+                if (document.getElementById('diagnostico')) {
+                    document.getElementById('diagnostico').value = formulario.diagnostico || '';
+                }
+                if (document.getElementById('edad_snapshot')) {
+                    document.getElementById('edad_snapshot').value = formulario.edad_snapshot || '';
+                }
+                if (document.getElementById('edad_gestion')) {
+                    document.getElementById('edad_gestion').value = formulario.edad_gestion || '';
+                }
+                if (document.getElementById('n_controles_prenatales')) {
+                    document.getElementById('n_controles_prenatales').value = formulario.n_controles_prenatales || '';
+                }
+                if (document.getElementById('responsable')) {
+                    document.getElementById('responsable').value = formulario.responsable || '';
+                }
+                if (document.getElementById('aseguradora_id') && formulario.aseguradora) {
+                    document.getElementById('aseguradora_id').value = formulario.aseguradora.id || '';
+                }
+                
+                // Calcular la edad usando la fecha de nacimiento del paciente
+                if (document.getElementById('edad_snapshot') && paciente.fecha_nacimiento) {
+                    document.getElementById('edad_snapshot').value = calcularEdad(paciente.fecha_nacimiento);
+                }
+                
+                // Cargar las mediciones en el grid
+                await cargarMedicionesEnGrid(formulario.id);
+                
+                // Cambiar botón a "Actualizar" ya que se encontró un formulario
+                actualizarTextoBoton(true);
+                
+                mostrarMensaje('Datos encontrados', "success");
+            } else {
+                // Buscar solo el paciente si no hay formulario
+                const pacientes = await apiRequest(`/pacientes/?num_identificacion=${documento}`);
+                if (pacientes && pacientes.length > 0) {
+                    const paciente = pacientes[0];
                     if (document.getElementById('paciente_id')) {
                         document.getElementById('paciente_id').value = paciente.id;
-                    }
-                    if (document.getElementById('formulario_id')) {
-                        document.getElementById('formulario_id').value = formulario.id;
                     }
                     if (document.getElementById('num_historia_clinica')) {
                         document.getElementById('num_historia_clinica').value = paciente.num_historia_clinica || '';
@@ -805,57 +1024,57 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (document.getElementById('nombres')) {
                         document.getElementById('nombres').value = paciente.nombres || '';
                     }
-                    
-                    // Llenar campos del formulario
+                    if (document.getElementById('tipo_sangre')) {
+                        document.getElementById('tipo_sangre').value = paciente.tipo_sangre || '';
+                    }
                     if (document.getElementById('fecha_elabora_paciente')) {
-                        document.getElementById('fecha_elabora_paciente').value = formulario.fecha_elabora || '';
+                        document.getElementById('fecha_elabora_paciente').value = paciente.fecha_nacimiento || '';
                     }
-                    if (document.getElementById('codigo')) {
-                        document.getElementById('codigo').value = formulario.codigo || '';
-                    }
-                    if (document.getElementById('num_hoja')) {
-                        document.getElementById('num_hoja').value = formulario.num_hoja || '';
-                    }
-                    if (document.getElementById('estado')) {
-                        document.getElementById('estado').value = formulario.estado || '';
-                    }
-                    if (document.getElementById('diagnostico')) {
-                        document.getElementById('diagnostico').value = formulario.diagnostico || '';
-                    }
-                    if (document.getElementById('edad_snapshot')) {
-                        document.getElementById('edad_snapshot').value = formulario.edad_snapshot || '';
-                    }
-                    if (document.getElementById('edad_gestion')) {
-                        document.getElementById('edad_gestion').value = formulario.edad_gestion || '';
-                    }
-                    if (document.getElementById('n_controles_prenatales')) {
-                        document.getElementById('n_controles_prenatales').value = formulario.n_controles_prenatales || '';
-                    }
-                    if (document.getElementById('responsable')) {
-                        document.getElementById('responsable').value = formulario.responsable || '';
-                    }
-                    if (document.getElementById('aseguradora_id') && formulario.aseguradora) {
-                        document.getElementById('aseguradora_id').value = formulario.aseguradora.id || '';
-                    }
-                    
-                    // Calcular la edad usando la fecha de nacimiento del paciente
                     if (document.getElementById('edad_snapshot') && paciente.fecha_nacimiento) {
-                        document.getElementById('edad_snapshot').value = calcularEdad(paciente.fecha_nacimiento);
+                        const edad = calcularEdad(paciente.fecha_nacimiento);
+                        document.getElementById('edad_snapshot').value = edad;
                     }
-                    
-                    // Cargar las mediciones en el grid
-                    await cargarMedicionesEnGrid(formulario.id);
-                    
-                    mostrarMensaje(`Formulario encontrado (ID: ${formulario.id}). Datos cargados.`, "success");
+                    // Mantener botón en "Guardar" ya que no hay formulario
+                    actualizarTextoBoton(false);
+                    mostrarMensaje("Paciente encontrado. No se encontró formulario existente. Puede crear uno nuevo.", "info");
                 } else {
-                    mostrarMensaje("No se encontró ningún formulario para este paciente. Puede crear uno nuevo.", "info");
+                    mostrarMensaje("No se encontró ningún formulario ni paciente para este documento. Puede crear uno nuevo.", "info");
                     // Limpiar formulario excepto el campo de búsqueda de documento
                     limpiarFormulario();
-                    document.getElementById('documento').value = documento;
+                    if (documentoInput) {
+                        documentoInput.value = documento;
+                    }
                 }
-            } catch (error) {
-                console.error("Error al buscar formulario:", error);
-                mostrarMensaje("Error al buscar formulario: " + error.message, "error");
+            }
+        } catch (error) {
+            console.error("Error al buscar formulario:", error);
+            mostrarMensaje("Error al buscar datos", "error");
+        }
+    }
+
+    // Event listener para buscar paciente por documento
+    const btnBuscarPaciente = document.getElementById("btnBuscarPaciente");
+    if (btnBuscarPaciente) {
+        btnBuscarPaciente.addEventListener("click", async function () {
+            const documento = document.getElementById("documento").value;
+            await buscarPorDocumento(documento);
+        });
+    }
+    
+    // Búsqueda automática cuando se ingresa documento (al perder foco)
+    const documentoInput = document.getElementById("documento");
+    if (documentoInput) {
+        documentoInput.addEventListener('blur', async function() {
+            const documento = this.value.trim();
+            if (!documento) return;
+            await buscarPorDocumento(documento);
+        });
+        
+        // También permitir búsqueda con Enter
+        documentoInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                buscarPorDocumento(this.value.trim());
             }
         });
     }
@@ -879,6 +1098,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // 2. Llenar los inputs de tiempo (encabezado del grid)
             const timeInputs = document.querySelectorAll('.time-input');
             const horaToIndexMap = {};
+            const columnasConDatos = new Set(); // Para rastrear qué columnas tienen datos
 
             horasUnicas.forEach((hora, index) => {
                 if (index < timeInputs.length) {
@@ -895,7 +1115,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // 3. Limpiar grid antes de cargar (opcional, pero recomendado)
             document.querySelectorAll('.data-input').forEach(input => input.value = '');
 
-            // 4. Llenar los valores en las celdas
+            // 4. Llenar los valores en las celdas y rastrear columnas con datos
             mediciones.forEach(medicion => {
                 const horaIndex = horaToIndexMap[medicion.tomada_en];
                 if (horaIndex === undefined) return; // Superó las 12 columnas
@@ -927,11 +1147,22 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                         
                         input.value = valor;
+                        
+                        // Si el valor no está vacío, marcar esta columna como con datos
+                        if (valor !== '' && valor !== null && valor !== undefined) {
+                            columnasConDatos.add(horaIndex);
+                        }
                     }
                 });
             });
 
-            console.log('✅ Grid poblado con éxito.');
+            // 5. Bloquear todas las columnas que tienen al menos un dato
+            columnasConDatos.forEach(horaIndex => {
+                bloquearColumna(horaIndex, true);
+                console.log(`🔒 Columna ${horaIndex} bloqueada (tiene datos)`);
+            });
+
+            console.log('✅ Grid poblado con éxito. Columnas con datos bloqueadas:', Array.from(columnasConDatos));
         } catch (error) {
             console.error('❌ Error al cargar mediciones en el grid:', error);
             mostrarMensaje('Error al cargar mediciones guardadas', 'error');
@@ -966,7 +1197,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log(`🚀 Generando PDF genérico para Paciente ID: ${pacienteId}`);
             window.open(`/pacientes/${pacienteId}/pdf/`, '_blank');
         } else {
-            mostrarMensaje('⚠️ Primero busque un paciente o formulario para imprimir.', 'error');
+            mostrarMensaje('Busque un paciente o formulario para imprimir', 'error');
         }
     }
 

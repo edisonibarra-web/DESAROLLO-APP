@@ -49,10 +49,19 @@ class PacienteSerializer(serializers.ModelSerializer):
 
 class PacienteListSerializer(serializers.ModelSerializer):
     """Serializador simplificado para listar pacientes"""
+    tipo_sangre_display = serializers.CharField(source='get_tipo_sangre_display', read_only=True)
     
     class Meta:
         model = Paciente
-        fields = ['id', 'num_historia_clinica', 'num_identificacion', 'nombres']
+        fields = [
+            'id', 
+            'num_historia_clinica', 
+            'num_identificacion', 
+            'nombres',
+            'tipo_sangre',
+            'tipo_sangre_display',
+            'fecha_nacimiento'
+        ]
         read_only_fields = ['id']
 
 

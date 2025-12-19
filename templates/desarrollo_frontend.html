@@ -8,50 +8,50 @@
     <link rel="stylesheet"  href="{% static 'css/style.css' %}">
 </head>
 <body>
-    <form id="formulario-clinico" method="post">
-        {% csrf_token %}
-    
-        <div class="form-container">
-            <!-- Encabezado del Formulario -->
-            <div class="form-header">
-                <div class="header-left">
-                    <div class="logo-section">
-                        <div class="logo-box">
-                            <img src="{% static 'img/logo_hospital.png' %}" alt="Logo Hospital">
-                        </div>
+    <div class="form-container">
+        <!-- Encabezado del Formulario -->
+        <div class="form-header">
+            <div class="header-left">
+                <div class="logo-section">
+                    <div class="logo-box">
+                        <img src="{% static 'img/logo_hospital.png' %}" alt="Logo Hospital">
                     </div>
-                </div>
-                <div class="header-center">
-                    <h1>CONTROL DE TRABAJO DE PARTO</h1>
-                </div>
-                <div class="header-right">
-                    <div class="code-box">
-                        <div>codigo: <input type="text" id="codigo" name="codigo" value="FRSPA-022" class="header-input header-input-static" required maxlength="255" readonly></div>
-                        <div class="header-static-chip">VERSIÓN</div>
-                        <div>VERSIÓN: <input type="text" id="version" name="version" value="FRSPA-022" class="header-input header-input-static" required maxlength="50" readonly></div>
-                        <div class="header-chip-side">
-                            <div class="header-static-chip">FECHA DE ELABORACIÓN</div>
-                            <div class="header-static-chip">2 DE MARZO DEL 2018</div>
-                            <div class="header-static-chip">FECHA DE ACTUALIZACIÓN</div>
-                            <div class="header-static-chip">2 DE MARZO DEL 2018</div>
-                        </div>
-                    </div>
-                    <div class="accreditation">
-                    </div>
-                </div>
-                <div class="header-top-right">
-                    <img class="accreditation-img" src="{% static 'img/logo_acreditacion.png' %}" alt="Logo Acreditación">
                 </div>
             </div>
-            <div class="meta-box">
-            <div class="page-info">
-                HOJA: <input type="number" id="num_hoja" name="num_hoja" value="1" min="1" class="page-input" required> DE: 1
+            <div class="header-center">
+                <h1>CONTROL DE TRABAJO DE PARTO</h1>
             </div>
+            <div class="header-right">
+                <div class="code-box">
+                    <div>codigo: <input type="text" id="codigo" name="codigo" value="FRSPA-022" class="header-input header-input-static" required maxlength="255" readonly></div>
+                    <div class="header-static-chip">VERSIÓN</div>
+                    <div>VERSIÓN: <input type="text" id="version" name="version" value="FRSPA-022" class="header-input header-input-static" required maxlength="50" readonly></div>
+                    <div class="header-chip-side">
+                        <div class="header-static-chip">FECHA DE ELABORACIÓN</div>
+                        <div class="header-static-chip">2 DE MARZO DEL 2018</div>
+                        <div class="header-static-chip">FECHA DE ACTUALIZACIÓN</div>
+                        <div class="header-static-chip">2 DE MARZO DEL 2018</div>
+                    </div>
+                </div>
+                <div class="accreditation">
+                </div>
+            </div>
+            <div class="header-top-right">
+                <img class="accreditation-img" src="{% static 'img/logo_acreditacion.png' %}" alt="Logo Acreditación">
+            </div>
+        </div>
+        <div class="meta-box">
+        <div class="page-info">
+            HOJA: <input type="number" id="num_hoja" name="num_hoja" value="1" min="1" class="page-input" required> DE: 1
+        </div>
 
-            <!-- Campos ocultos para IDs -->
-            <input type="hidden" id="paciente_id" name="paciente_id">
-            <input type="hidden" id="formulario_id" name="formulario_id">
+        <!-- Campos ocultos para IDs -->
+        <input type="hidden" id="paciente_id" name="paciente_id">
+        <input type="hidden" id="formulario_id" name="formulario_id">
 
+        <form id="formulario-clinico" method="post">
+            {% csrf_token %}
+            
             <!-- Información del Paciente -->
             <div class="patient-info-section">
                 <table class="patient-table">
@@ -136,7 +136,6 @@
                         </td>
                     </tr>
                 </table>
-            </div>
             </div>
 
             <!-- Tabla Principal de Control -->
@@ -1525,8 +1524,9 @@
                     <button type="submit" id="btn-guardar" class="btn btn-primary">Guardar Formulario</button>
                 </div>
             </div>
-        </div>
-    </form>
+        </form>
+    </div>
+    </div>
 
     <script src="{% static 'js/main.js' %}"></script>
 
