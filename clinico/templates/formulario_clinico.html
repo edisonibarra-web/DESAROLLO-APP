@@ -261,6 +261,177 @@
             </div>
         </div>
     </form>
+    
+    <!-- Sección Colapsable -->
+    <div class="collapsible-section">
+        <button class="collapsible-btn" onclick="toggleCollapsible()">
+            <span class="collapsible-icon" id="collapsible-icon">▼</span>
+            <span>Datos guardados en el formulario</span>
+        </button>
+        <div class="collapsible-content" id="collapsible-content" style="display: none;">
+            <div class="collapsible-body">
+                <!-- Información del Paciente -->
+                <div class="patient-info-section">
+                    <table class="patient-table">
+                        <tr>
+                            <td class="label-cell">DD/MM/AA</td>
+                            <td class="input-cell">
+                                <span class="info-value"></span>
+                            </td>
+                            <td class="label-cell">ASEGURADORA</td>
+                            <td class="input-cell">
+                                <span class="info-value"></span>
+                            </td>
+                            <td class="label-cell">N° HISTORIA CLÍNICA</td>
+                            <td class="input-cell">
+                                <span class="info-value"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="label-cell">CC. IDENTIFICACIÓN</td>
+                            <td class="input-cell">
+                                <span class="info-value"></span>
+                            </td>
+                            <td class="label-cell">NOMBRE Y APELLIDO</td>
+                            <td class="input-cell wide-input" colspan="3">
+                                <span class="info-value"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="label-cell">DIAGNÓSTICO</td>
+                            <td class="input-cell" colspan="2">
+                                <span class="info-value"></span>
+                            </td>
+                            <td class="label-cell">EDAD</td>
+                            <td class="input-cell">
+                                <span class="info-value"></span>
+                            </td>
+                            <td class="label-cell">GRUPO SANGUÍNEO</td>
+                            <td class="input-cell">
+                                <span class="info-value"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="label-cell">EDAD GESTACIONAL</td>
+                            <td class="input-cell">
+                                <span class="info-value"></span>
+                            </td>
+                            <td class="label-cell">G_P_C_A_V_M_</td>
+                            <td class="input-cell">
+                                <span class="info-value"></span>
+                            </td>
+                            <td class="label-cell label-cell-center">N° CONTROLES PRENATALES</td>
+                            <td class="input-cell">
+                                <span class="info-value"></span>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- Tabla Principal de Control -->
+                <div class="main-control-table">
+                    <table class="control-grid">
+                        <thead>
+                            <tr>
+                                <th rowspan="2" class="item-col">ITEM</th>
+                                <th rowspan="2" class="param-col">PARÁMETRO</th>
+                                <th colspan="10" class="time-header">HORA</th>
+                            </tr>
+                            <tr class="time-row">
+                                <th class="time-cell">
+                                    <span class="info-time">15/12/2024 08:00</span>
+                                </th>
+                                <th class="time-cell">
+                                    <span class="info-time">15/12/2024 09:00</span>
+                                </th>
+                                <th class="time-cell">
+                                    <span class="info-time">15/12/2024 10:00</span>
+                                </th>
+                                <th class="time-cell">
+                                    <span class="info-time">15/12/2024 11:00</span>
+                                </th>
+                                <th class="time-cell">
+                                    <span class="info-time">15/12/2024 12:00</span>
+                                </th>
+                                <th class="time-cell">
+                                    <span class="info-time">15/12/2024 13:00</span>
+                                </th>
+                                <th class="time-cell">
+                                    <span class="info-time">15/12/2024 14:00</span>
+                                </th>
+                                <th class="time-cell">
+                                    <span class="info-time">15/12/2024 15:00</span>
+                                </th>
+                                <th class="time-cell">
+                                    <span class="info-time">15/12/2024 16:00</span>
+                                </th>
+                                <th class="time-cell">
+                                    <span class="info-time">15/12/2024 17:00</span>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in items %}
+                            <!-- {{ item.nombre|upper }} -->
+                            <tr class="section-header">
+                                <td colspan="12" class="section-title">{{ item.nombre|upper }}</td>
+                            </tr>
+                            {% for parametro in item.parametros.all %}
+                            <tr>
+                                {% if forloop.first %}
+                                <td class="item-num" data-item-id="{{ item.id }}" rowspan="{{ item.parametros.count }}">{{ item.nombre }}</td>
+                                {% endif %}
+                                <td class="param-name" data-parametro-id="{{ parametro.id }}" data-parametro-nombre="{{ parametro.nombre|upper }}">{{ parametro.nombre|upper }}</td>
+                                {% for hora_index in "0123456789"|make_list|slice:":10" %}
+                                <td class="data-cell">
+                                    <div class="cell-inputs">
+                                        {% for campo in parametro.campos.all %}
+                                        <div class="input-group">
+                                            {% if parametro.campos.count > 1 %}
+                                            <span class="field-label">{{ campo.nombre|slice:":3" }}</span>
+                                            {% endif %}
+                                            <span class="info-value" 
+                                                  data-parametro-id="{{ parametro.id }}" 
+                                                  data-campo-id="{{ campo.id }}"
+                                                  data-hora-index="{{ forloop.parentloop.counter0 }}">-</span>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </td>
+                                {% endfor %}
+                            </tr>
+                            {% endfor %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pie del Formulario -->
+                <div class="form-footer" style="border-top: 2px solid var(--color-borde, #e5e7eb); margin-top: 1rem; padding-top: 1rem;">
+                    <div class="responsible-field">
+                        <label>RESPONSABLE:</label>
+                        <span class="info-value"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        function toggleCollapsible() {
+            const content = document.getElementById('collapsible-content');
+            const icon = document.getElementById('collapsible-icon');
+            
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                icon.classList.remove('rotated');
+            } else {
+                content.style.display = 'none';
+                icon.classList.add('rotated');
+            }
+        }
+    </script>
 
     <script src="{% static 'js/main.js' %}"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>

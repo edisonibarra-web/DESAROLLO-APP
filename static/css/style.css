@@ -550,6 +550,9 @@ textarea.form-input {
   border-radius: 0.375rem;
   font-size: 1.05rem;
   min-width: 250px;
+  background-color: #d8d2d2;
+  color: #131212;
+  border-color: #000;
 }
 
 .form-actions {
@@ -675,5 +678,150 @@ textarea.form-input {
   background: #dbeafe;
   color: #1e40af;
   border: 1px solid #bfdbfe;
+}
+
+/* Sección Colapsable */
+.collapsible-section {
+  border: 1px solid var(--color-borde, #e5e7eb);
+  border-radius: 0.5rem;
+  background: #fff;
+  overflow: hidden;
+  max-width: 1400px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.collapsible-btn {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  background: var(--color-primario, #2563eb);
+  color: white;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  transition: background-color 0.2s;
+}
+
+.collapsible-btn:hover {
+  background: var(--color-primario, #1d4ed8);
+}
+
+.collapsible-icon {
+  transition: transform 0.3s;
+  font-size: 0.9rem;
+}
+
+.collapsible-icon.rotated {
+  transform: rotate(-90deg);
+}
+
+.collapsible-content {
+  padding: 0;
+  background: #f9fafb;
+  border-top: 1px solid var(--color-borde, #e5e7eb);
+  animation: slideDown 0.3s ease-out;
+}
+
+.collapsible-body {
+  padding: 1.5rem;
+}
+
+.collapsible-body h3 {
+  margin-top: 0;
+  color: var(--color-texto, #1f2937);
+}
+
+.collapsible-body p {
+  margin: 0.75rem 0;
+  color: var(--color-texto, #1f2937);
+  line-height: 1.6;
+}
+
+.collapsible-body ul {
+  margin: 1rem 0;
+  padding-left: 1.5rem;
+}
+
+.collapsible-body li {
+  margin: 0.5rem 0;
+  color: var(--color-texto, #1f2937);
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 1000px;
+  }
+}
+
+/* Estilos para elementos informativos dentro del colapsable */
+.info-value {
+  display: inline-block;
+  padding: 0.4rem 0.6rem;
+  background: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 0.25rem;
+  font-size: 0.95rem;
+  color: #333;
+  min-width: 80px;
+  text-align: center;
+  pointer-events: none;
+  user-select: none;
+  cursor: default;
+}
+
+.info-time {
+  display: inline-block;
+  padding: 0.25rem 0.4rem;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  font-size: 0.7rem;
+  border-radius: 0.2rem;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+  cursor: default;
+}
+
+.collapsible-body .patient-info-section {
+  margin: 0 0 1.5rem 0;
+}
+
+.collapsible-body .main-control-table {
+  margin: 0;
+}
+
+.collapsible-body .form-footer {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 2px solid var(--color-borde, #e5e7eb);
+}
+
+/* Estilos específicos para info-value en celdas de datos del colapsable */
+.collapsible-body .data-cell .info-value {
+  padding: 0.1rem 0.15rem;
+  font-size: 0.75rem;
+  min-width: auto;
+  width: 100%;
+  height: 20px;
+  line-height: 20px;
+}
+
+.collapsible-body .cell-inputs .info-value {
+  padding: 0.1rem 0.15rem;
+  font-size: 0.75rem;
+  min-width: auto;
+  width: 100%;
+  height: 20px;
+  line-height: 20px;
 }
 

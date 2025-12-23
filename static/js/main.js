@@ -47,6 +47,9 @@ async function apiRequest(endpoint, method = 'GET', data = null) {
         method: method,
         headers: {
             'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
         },
         credentials: 'same-origin', // 🔥 CLAVE
     };
@@ -60,7 +63,11 @@ async function apiRequest(endpoint, method = 'GET', data = null) {
         options.body = JSON.stringify(data);
     }
 
-    const url = `${API_BASE_URL}${endpoint}`;
+    // Agregar timestamp si no está presente en la URL para evitar caché
+    let url = `${API_BASE_URL}${endpoint}`;
+    if (method === 'GET' && !url.includes('?_=')) {
+        url += (url.includes('?') ? '&' : '?') + '_=' + new Date().getTime();
+    }
     console.log(`🌐 Haciendo petición ${method} a: ${url}`);
     if (data) {
         console.log('📤 Datos enviados:', data);
@@ -194,8 +201,12 @@ async function buscarPaciente() {
             if (paciente.tipo_sangre) {
                 document.getElementById('tipo_sangre').value = paciente.tipo_sangre;
             }
+            const fechaElaboraPaciente = document.getElementById('fecha_elabora_paciente');
+            if (fechaElaboraPaciente) {
+                const hoy = new Date().toISOString().split('T')[0];
+                fechaElaboraPaciente.value = paciente.fecha_nacimiento || hoy;
+            }
             if (paciente.fecha_nacimiento) {
-                document.getElementById('fecha_elabora_paciente').value = paciente.fecha_nacimiento;
                 // Calcular edad automáticamente al buscar
                 if (document.getElementById('edad_snapshot')) {
                     document.getElementById('edad_snapshot').value = calcularEdad(paciente.fecha_nacimiento);
@@ -394,6 +405,9 @@ async function guardarFormulario() {
         // Actualizar el ID del formulario en el campo oculto
         document.getElementById('formulario_id').value = formulario.id;
         
+        // Actualizar el formulario informativo con los datos guardados
+        await actualizarFormularioInformativo(formulario.id);
+        
         const mensaje = esActualizacion ? 'Datos actualizados' : 'Datos guardados';
         mostrarMensaje(mensaje, 'success');
         
@@ -414,6 +428,256 @@ async function guardarFormulario() {
         }
         
         mostrarMensaje(alertMessage, 'error');
+    }
+}
+
+// Función para actualizar el formulario informativo (colapsable) con los datos guardados
+async function actualizarFormularioInformativo(formularioId) {
+    try {
+        console.log(`📥 Actualizando formulario informativo para el formulario ${formularioId}...`);
+        
+        // Agregar timestamp para evitar caché del navegador
+        const timestamp = new Date().getTime();
+        
+        // Obtener datos del formulario completo desde la API (sin caché)
+        const formulario = await apiRequest(`/formularios/${formularioId}/?_=${timestamp}`);
+        console.log('📊 Formulario recibido desde la API:', formulario);
+        
+        if (!formulario) {
+            console.log('ℹ️ No se encontró el formulario.');
+            return;
+        }
+        
+        // Obtener mediciones desde la API (sin caché)
+        const mediciones = await apiRequest(`/formularios/${formularioId}/mediciones/?_=${timestamp}`);
+        console.log('📊 Mediciones recibidas desde la API:', mediciones);
+        
+        // Obtener el contenedor del formulario informativo
+        const collapsibleBody = document.querySelector('.collapsible-body');
+        if (!collapsibleBody) {
+            console.log('ℹ️ No se encontró el contenedor del formulario informativo.');
+            return;
+        }
+        
+        // SIEMPRE obtener datos completos del paciente desde la API (no usar caché)
+        // Esto asegura que tenemos todos los datos actualizados desde la base de datos
+        const pacienteId = formulario.paciente ? formulario.paciente.id : null;
+        let paciente = null;
+        
+        if (pacienteId) {
+            try {
+                // Obtener datos completos del paciente desde la API (sin caché)
+                paciente = await apiRequest(`/pacientes/${pacienteId}/?_=${timestamp}`);
+                if (paciente) {
+                    console.log('📋 Datos completos del paciente obtenidos desde la API:', paciente);
+                } else {
+                    // Fallback: usar datos del formulario si no se puede obtener el paciente
+                    paciente = formulario.paciente;
+                    console.warn('⚠️ No se pudieron obtener los datos completos del paciente, usando datos del formulario');
+                }
+            } catch (error) {
+                console.error('❌ Error al obtener datos del paciente:', error);
+                // Fallback: usar datos del formulario
+                paciente = formulario.paciente;
+            }
+        } else {
+            // Si no hay ID de paciente, usar los datos del formulario
+            paciente = formulario.paciente;
+        }
+        
+        if (paciente) {
+            const patientTable = collapsibleBody.querySelector('.patient-table');
+            
+            if (patientTable) {
+                const rows = patientTable.querySelectorAll('tr');
+                
+                // Primera fila: DD/MM/AA, ASEGURADORA, N° HISTORIA CLÍNICA
+                if (rows.length > 0) {
+                    const cells = rows[0].querySelectorAll('td');
+                    if (cells.length > 1) {
+                        // DD/MM/AA - Usar fecha_elabora del formulario o fecha_nacimiento del paciente
+                        const fechaSpan = cells[1].querySelector('.info-value');
+                        if (fechaSpan) {
+                            const fecha = formulario.fecha_elabora || paciente.fecha_nacimiento || new Date();
+                            const fechaObj = new Date(fecha);
+                            fechaSpan.textContent = fechaObj.toLocaleDateString('es-ES', {
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric'
+                            });
+                        }
+                    }
+                    if (cells.length > 3) {
+                        // ASEGURADORA
+                        const aseguradoraSpan = cells[3].querySelector('.info-value');
+                        if (aseguradoraSpan) {
+                            aseguradoraSpan.textContent = formulario.aseguradora ? (formulario.aseguradora.nombre || '-') : '-';
+                        }
+                    }
+                    if (cells.length > 5) {
+                        // N° HISTORIA CLÍNICA
+                        const historiaSpan = cells[5].querySelector('.info-value');
+                        if (historiaSpan) {
+                            historiaSpan.textContent = paciente.num_historia_clinica || '-';
+                        }
+                    }
+                }
+                
+                // Segunda fila: CC. IDENTIFICACIÓN, NOMBRE Y APELLIDO
+                if (rows.length > 1) {
+                    const cells = rows[1].querySelectorAll('td');
+                    if (cells.length > 1) {
+                        // CC. IDENTIFICACIÓN
+                        const identSpan = cells[1].querySelector('.info-value');
+                        if (identSpan) {
+                            identSpan.textContent = paciente.num_identificacion || '-';
+                        }
+                    }
+                    if (cells.length > 3) {
+                        // NOMBRE Y APELLIDO
+                        const nombreSpan = cells[3].querySelector('.info-value');
+                        if (nombreSpan) {
+                            nombreSpan.textContent = paciente.nombres || '-';
+                        }
+                    }
+                }
+                
+                // Tercera fila: DIAGNÓSTICO, EDAD, GRUPO SANGUÍNEO
+                if (rows.length > 2) {
+                    const cells = rows[2].querySelectorAll('td');
+                    if (cells.length > 1) {
+                        // DIAGNÓSTICO
+                        const diagSpan = cells[1].querySelector('.info-value');
+                        if (diagSpan) {
+                            diagSpan.textContent = formulario.diagnostico || '-';
+                        }
+                    }
+                    if (cells.length > 3) {
+                        // EDAD - Calcular desde fecha_nacimiento si está disponible
+                        const edadSpan = cells[3].querySelector('.info-value');
+                        if (edadSpan) {
+                            let edad = formulario.edad_snapshot;
+                            if (!edad && paciente.fecha_nacimiento) {
+                                edad = calcularEdad(paciente.fecha_nacimiento);
+                            }
+                            edadSpan.textContent = edad || '-';
+                        }
+                    }
+                    if (cells.length > 5) {
+                        // GRUPO SANGUÍNEO
+                        const sangreSpan = cells[5].querySelector('.info-value');
+                        if (sangreSpan) {
+                            sangreSpan.textContent = paciente.tipo_sangre || '-';
+                        }
+                    }
+                }
+                
+                // Cuarta fila: EDAD GESTACIONAL, G_P_C_A_V_M_, N° CONTROLES PRENATALES
+                if (rows.length > 3) {
+                    const cells = rows[3].querySelectorAll('td');
+                    if (cells.length > 1) {
+                        // EDAD GESTACIONAL
+                        const edadGestSpan = cells[1].querySelector('.info-value');
+                        if (edadGestSpan) {
+                            edadGestSpan.textContent = (formulario.edad_gestion !== null && formulario.edad_gestion !== undefined) ? formulario.edad_gestion : '-';
+                        }
+                    }
+                    if (cells.length > 3) {
+                        // G_P_C_A_V_M_
+                        const estadoSpan = cells[3].querySelector('.info-value');
+                        if (estadoSpan) {
+                            estadoSpan.textContent = formulario.estado_display || formulario.estado || '-';
+                        }
+                    }
+                    if (cells.length > 5) {
+                        // N° CONTROLES PRENATALES
+                        const controlesSpan = cells[5].querySelector('.info-value');
+                        if (controlesSpan) {
+                            controlesSpan.textContent = (formulario.n_controles_prenatales !== null && formulario.n_controles_prenatales !== undefined) ? formulario.n_controles_prenatales : '-';
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Actualizar responsable
+        if (formulario.responsable) {
+            const responsableInfo = collapsibleBody.querySelector('.form-footer .info-value');
+            if (responsableInfo) {
+                responsableInfo.textContent = formulario.responsable;
+            }
+        }
+        
+        // Actualizar tabla de mediciones en el formulario informativo
+        if (mediciones && mediciones.length > 0) {
+            // 1. Identificar todas las horas únicas y ordenarlas
+            const horasUnicas = [...new Set(mediciones.map(m => m.tomada_en))].sort();
+            console.log('⏰ Horas detectadas:', horasUnicas);
+            
+            // 2. Llenar los spans de tiempo en el encabezado del grid informativo
+            const timeSpans = collapsibleBody.querySelectorAll('.info-time');
+            const horaToIndexMap = {};
+            
+            horasUnicas.forEach((hora, index) => {
+                if (index < timeSpans.length) {
+                    const date = new Date(hora);
+                    const fechaHora = date.toLocaleString('es-ES', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                    timeSpans[index].textContent = fechaHora;
+                    horaToIndexMap[hora] = index;
+                }
+            });
+            
+            // 3. Limpiar valores informativos antes de cargar
+            collapsibleBody.querySelectorAll('.data-cell .info-value').forEach(span => {
+                span.textContent = '-';
+            });
+            
+            // 4. Llenar los valores en las celdas informativas
+            mediciones.forEach(medicion => {
+                const horaIndex = horaToIndexMap[medicion.tomada_en];
+                if (horaIndex === undefined) return;
+                
+                const parametroId = medicion.parametro ? medicion.parametro.id : null;
+                if (!parametroId) return;
+                
+                medicion.valores.forEach(v => {
+                    const campoId = v.campo ? v.campo.id : null;
+                    if (!campoId) return;
+                    
+                    const selector = `.info-value[data-parametro-id="${parametroId}"][data-campo-id="${campoId}"][data-hora-index="${horaIndex}"]`;
+                    const span = collapsibleBody.querySelector(selector);
+                    
+                    if (span) {
+                        // Obtener el valor no nulo y formatearlo
+                        let valor = '-';
+                        if (v.valor_number !== null && v.valor_number !== undefined) {
+                            valor = parseFloat(v.valor_number);
+                            if (Number.isInteger(valor)) valor = parseInt(valor);
+                            valor = valor.toString();
+                        } else if (v.valor_text !== null && v.valor_text !== undefined) {
+                            valor = v.valor_text;
+                        } else if (v.valor_boolean !== null && v.valor_boolean !== undefined) {
+                            valor = v.valor_boolean ? 'Sí' : 'No';
+                        } else if (v.valor_json !== null && v.valor_json !== undefined) {
+                            valor = JSON.stringify(v.valor_json);
+                        }
+                        
+                        span.textContent = valor;
+                    }
+                });
+            });
+        }
+        
+        console.log('✅ Formulario informativo actualizado con éxito.');
+    } catch (error) {
+        console.error('❌ Error al actualizar formulario informativo:', error);
+        // No mostrar mensaje de error al usuario, solo log
     }
 }
 
@@ -593,6 +857,13 @@ function limpiarFormulario() {
         const el = document.getElementById(id);
         if (el) el.value = '';
     });
+    
+    // Restablecer fecha actual en fecha_elabora_paciente después de limpiar
+    const fechaElaboraPaciente = document.getElementById('fecha_elabora_paciente');
+    if (fechaElaboraPaciente) {
+        const hoy = new Date().toISOString().split('T')[0];
+        fechaElaboraPaciente.value = hoy;
+    }
 
     // Desbloquear todas las columnas antes de limpiar
     desbloquearTodasLasColumnas();
@@ -631,6 +902,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const fechaElabora = document.getElementById('fecha_elabora');
     if (fechaElabora && !fechaElabora.value) {
         fechaElabora.value = hoy;
+    }
+    
+    // Establecer fecha actual por defecto en fecha_elabora_paciente
+    const fechaElaboraPaciente = document.getElementById('fecha_elabora_paciente');
+    if (fechaElaboraPaciente) {
+        fechaElaboraPaciente.value = hoy;
     }
 
     // Recalcular edad cuando cambie la fecha de nacimiento (fecha_elabora_paciente)
@@ -696,8 +973,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (document.getElementById('tipo_sangre')) {
                         document.getElementById('tipo_sangre').value = paciente.tipo_sangre || '';
                     }
-                    if (document.getElementById('fecha_elabora_paciente')) {
-                        document.getElementById('fecha_elabora_paciente').value = paciente.fecha_nacimiento || '';
+                    const fechaElaboraPaciente = document.getElementById('fecha_elabora_paciente');
+                    if (fechaElaboraPaciente) {
+                        const hoy = new Date().toISOString().split('T')[0];
+                        fechaElaboraPaciente.value = paciente.fecha_nacimiento || hoy;
                     }
                     if (document.getElementById('edad_snapshot') && paciente.fecha_nacimiento) {
                         const edad = calcularEdad(paciente.fecha_nacimiento);
@@ -790,8 +1069,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (document.getElementById('tipo_sangre')) {
                         document.getElementById('tipo_sangre').value = paciente.tipo_sangre || '';
                     }
-                    if (document.getElementById('fecha_elabora_paciente')) {
-                        document.getElementById('fecha_elabora_paciente').value = paciente.fecha_nacimiento || '';
+                    const fechaElaboraPaciente = document.getElementById('fecha_elabora_paciente');
+                    if (fechaElaboraPaciente) {
+                        const hoy = new Date().toISOString().split('T')[0];
+                        fechaElaboraPaciente.value = paciente.fecha_nacimiento || hoy;
                     }
                     if (document.getElementById('edad_snapshot') && paciente.fecha_nacimiento) {
                         const edad = calcularEdad(paciente.fecha_nacimiento);
@@ -958,15 +1239,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (document.getElementById('tipo_sangre') && paciente.tipo_sangre) {
                     document.getElementById('tipo_sangre').value = paciente.tipo_sangre || '';
                 }
-                if (document.getElementById('fecha_elabora_paciente') && paciente.fecha_nacimiento) {
-                    document.getElementById('fecha_elabora_paciente').value = paciente.fecha_nacimiento || '';
+                const fechaElaboraPaciente = document.getElementById('fecha_elabora_paciente');
+                if (fechaElaboraPaciente) {
+                    const hoy = new Date().toISOString().split('T')[0];
+                    // Priorizar fecha de nacimiento del paciente, luego fecha del formulario, finalmente fecha actual
+                    fechaElaboraPaciente.value = paciente.fecha_nacimiento || formulario.fecha_elabora || hoy;
                 }
                 
                 // Llenar campos del formulario
-                if (document.getElementById('fecha_elabora_paciente') && !paciente.fecha_nacimiento) {
-                    // Si no hay fecha de nacimiento del paciente, usar la fecha del formulario
-                    document.getElementById('fecha_elabora_paciente').value = formulario.fecha_elabora || '';
-                }
                 if (document.getElementById('codigo')) {
                     document.getElementById('codigo').value = formulario.codigo || '';
                 }
@@ -1027,8 +1307,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (document.getElementById('tipo_sangre')) {
                         document.getElementById('tipo_sangre').value = paciente.tipo_sangre || '';
                     }
-                    if (document.getElementById('fecha_elabora_paciente')) {
-                        document.getElementById('fecha_elabora_paciente').value = paciente.fecha_nacimiento || '';
+                    const fechaElaboraPaciente = document.getElementById('fecha_elabora_paciente');
+                    if (fechaElaboraPaciente) {
+                        const hoy = new Date().toISOString().split('T')[0];
+                        fechaElaboraPaciente.value = paciente.fecha_nacimiento || hoy;
                     }
                     if (document.getElementById('edad_snapshot') && paciente.fecha_nacimiento) {
                         const edad = calcularEdad(paciente.fecha_nacimiento);
