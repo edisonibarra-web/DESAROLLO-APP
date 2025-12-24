@@ -80,18 +80,35 @@ WSGI_APPLICATION = 'desarrollo_app.wsgi.application'
 # Configuración PostgreSQL
 # IMPORTANTE: Verifica estos valores antes de ejecutar migrate
 
-DATABASES = {
-    'default': {
-       'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'hospital_db',
-        'USER': 'postgres',
-        'PASSWORD': '1234',
-        'HOST': '127.0.0.1',
-        'PORT': '5432',
-    }
-}
+
+#DATABASES = {
+#    'default': {
+#       'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#        'NAME': 'hospital_db',
+#        'USER': 'postgres',
+#        'PASSWORD': '1234',
+#        'HOST': '127.0.0.1',
+#        'PORT': '5432',
+#    }
+#}
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
+
+# Configuración SQL Server
+DATABASES = {
+    'default': {
+        'ENGINE': 'mssql',
+        'NAME': 'clinico_sql',          # nombre de la DB en SQL Server
+        'HOST': 'localhost',
+        'OPTIONS': {
+            'driver': 'ODBC Driver 18 for SQL Server',
+            'trusted_connection': 'yes',   # Autenticación de Windows
+            # Para ODBC Driver 18, necesitamos agregar estos parámetros en extra_params
+            # para evitar el error de certificado SSL
+            'extra_params': 'TrustServerCertificate=yes;Encrypt=yes',
+        },
+    }
+}
 
 AUTH_PASSWORD_VALIDATORS = [
     {
