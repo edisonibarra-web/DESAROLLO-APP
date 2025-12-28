@@ -10,6 +10,7 @@ from reportlab.pdfgen import canvas
 from reportlab.platypus import Table, TableStyle
 from reportlab.lib import colors
 import logging
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -285,6 +286,154 @@ class MedicionValorViewSet(viewsets.ModelViewSet):
     lookup_field = 'id'
 
 
+def obtener_texto_completo_select(parametro_id, campo_id, valor_guardado):
+    """
+    Obtiene el texto completo de una opción de select basándose en el valor guardado.
+    Replica la lógica del formulario informativo para mostrar los valores completos.
+    """
+    if not valor_guardado:
+        return valor_guardado
+    
+    # Mapeo de valores a textos completos según los selects del formulario
+    mapeos = {
+        # Frecuencia Cardíaca (parametro 2, campo 3)
+        (2, 3): {
+            "<40": "< 40 Bradicardia severa",
+            "40-59": "40 – 59 Bradicardia",
+            "60-100": "60 – 100 Normal",
+            "101-120": "101 – 120 Taquicardia leve",
+            "121-150": "121 – 150 Taquicardia",
+            ">150": "> 150 Taquicardia severa"
+        },
+        # Frecuencia Respiratoria (parametro 3, campo 4)
+        (3, 4): {
+            "<8": "< 8 Bradipnea",
+            "8-11": "8 – 11 FR baja",
+            "12-20": "12 – 20 Normal",
+            "21-30": "21 – 30 Taquipnea",
+            ">30": "> 30 Distrés respiratorio"
+        },
+        # Temperatura (parametro 4, campo 5)
+        (4, 5): {
+            "<32.0": "< 32.0 Hipotermia profunda",
+            "32.0-34.9": "32.0 – 34.9 Hipotermia moderada",
+            "35.0-35.9": "35.0 – 35.9 Hipotermia leve",
+            "36.0-37.4": "36.0 – 37.4 Normotermia",
+            "37.5-37.9": "37.5 – 37.9 Febrícula",
+            "38.0-38.9": "38.0 – 38.9 Fiebre",
+            "39.0-40.9": "39.0 – 40.9 Hipertermia",
+            ">=41.0": "≥ 41.0 Emergencia vital"
+        },
+        # Dinámica Uterina (parametro 5, campo 16)
+        (5, 16): {
+            "0": "0 Sin dinámica",
+            "1-2": "1–2 Fase latente",
+            "3-5": "3–5 Trabajo activo",
+            ">5": "> 5 Taquisistolia"
+        },
+        # Intensidad (parametro 6, campo 17)
+        (6, 17): {
+            "<30": "< 30 Ineficaz",
+            "30-60": "30 – 60 Normal",
+            "61-90": "61 – 90 Fuerte",
+            ">90": "> 90 Riesgo fetal"
+        },
+        # Contracciones (parametro 7, campo 9)
+        (7, 9): {
+            "0": "0 Ausente",
+            "1": "1 Leve (+)",
+            "2": "2 Moderada (++)",
+            "3": "3 Fuerte (+++)",
+            "4": "4 Hipertónica"
+        },
+        # Frecuencia Cardíaca Fetal (parametro 8, campo 6)
+        (8, 6): {
+            "<100": "< 100 Bradicardia severa",
+            "100-109": "100 – 109 Bradicardia",
+            "110-160": "110 – 160 Normal",
+            "161-180": "161 – 180 Taquicardia",
+            ">180": "> 180 Taquicardia severa"
+        },
+        # Movimientos Fetales (parametro 9, campo 10)
+        (9, 10): {
+            "0": "0 - Ausentes",
+            "1": "1 - Disminuidos",
+            "2": "2 - Presentes",
+            "3": "3 - Exagerados"
+        },
+        # Presentación (parametro 10, campo 11) - Ya tienen el texto completo
+        # Líquido Amniótico (parametro 13, campo 12) - Ya tienen el texto completo
+        # Membranas Íntegras (parametro 11, campo 14) - Ya tienen el texto completo
+        # Membranas Rotas (parametro 12, campo 15) - Ya tienen el texto completo
+        # Dilatación (parametro 15, campo 7)
+        (15, 7): {
+            "0–3 Latente": "0–3 Latente",
+            "4–6 Activa": "4–6 Activa",
+            "7–9 Transición": "7–9 Transición",
+            "10 Completa": "10 Completa"
+        },
+        # Categoría (parametro 18, campo 13) - Ya tienen el texto completo
+        # Dosis (parametro 19, campo 20)
+        (19, 20): {
+            "0 No uso": "0 No uso",
+            "1 – 5 Dosis baja": "1 – 5 Dosis baja",
+            "6 – 20 Terapéutica": "6 – 20 Terapéutica",
+            "> 20 Riesgo": "> 20 Riesgo"
+        }
+    }
+    
+    # Buscar el mapeo para este parámetro y campo
+    mapeo = mapeos.get((parametro_id, campo_id))
+    if mapeo:
+        # Convertir valor_guardado a string si es necesario
+        valor_str = str(valor_guardado).strip()
+        
+        # Buscar coincidencia exacta primero
+        texto_completo = mapeo.get(valor_str)
+        if texto_completo:
+            return texto_completo
+        
+        # Si no hay coincidencia exacta, buscar por coincidencia parcial
+        for valor_key, texto in mapeo.items():
+            if valor_str in valor_key or valor_key in valor_str:
+                return texto
+        
+        # Si el valor es numérico, intentar buscar en rangos
+        try:
+            valor_num = float(valor_str)
+            for valor_key, texto in mapeo.items():
+                # Buscar rangos como "101-120" o ">150" o "<40"
+                if '-' in valor_key:
+                    partes = valor_key.split('-')
+                    if len(partes) == 2:
+                        try:
+                            min_val = float(partes[0].replace('<', '').replace('>', '').strip())
+                            max_val = float(partes[1].replace('<', '').replace('>', '').strip())
+                            if min_val <= valor_num <= max_val:
+                                return texto
+                        except (ValueError, AttributeError):
+                            pass
+                elif valor_key.startswith('>'):
+                    try:
+                        min_val = float(valor_key.replace('>', '').replace('=', '').strip())
+                        if valor_num > min_val or (valor_key.startswith('>=') and valor_num >= min_val):
+                            return texto
+                    except (ValueError, AttributeError):
+                        pass
+                elif valor_key.startswith('<'):
+                    try:
+                        max_val = float(valor_key.replace('<', '').replace('=', '').strip())
+                        if valor_num < max_val or (valor_key.startswith('<=') and valor_num <= max_val):
+                            return texto
+                    except (ValueError, AttributeError):
+                        pass
+        except (ValueError, TypeError):
+            pass
+    
+    # Si no se encuentra mapeo, retornar el valor original
+    return valor_guardado
+
+
 def vista_impresion_formulario(request, formulario_id):
     """
     Vista optimizada para impresión en formato A4 (HTML a PDF).
@@ -298,12 +447,20 @@ def vista_impresion_formulario(request, formulario_id):
     mediciones_qs = Medicion.objects.filter(formulario=formulario).prefetch_related('valores__campo')
     
     # Organizar horas únicas (columnas) para el encabezado
+    # Usar las fechas tal como vienen de la base de datos, sin conversión de zona horaria
+    # para que coincidan con las que se muestran en el formulario web
+    from django.utils import timezone
     horas_unicas = sorted(list(set(m.tomada_en for m in mediciones_qs)))[:10]
+    # Asegurar que las fechas se mantengan en la zona horaria local (Colombia)
+    # sin conversión adicional
     
     # Mapear mediciones para fácil acceso en el template: {param_id: {hora_iso: {campo_id: valor}}}
+    # Usar el mismo formato de fecha que se usa en el formulario web
     grid_data = {}
     for m in mediciones_qs:
         p_id = m.parametro_id
+        # Usar isoformat() para mantener consistencia con el formato de la API
+        # Django ya maneja la conversión de zona horaria según USE_TZ y TIME_ZONE
         h_str = m.tomada_en.isoformat()
         
         if p_id not in grid_data:
@@ -313,13 +470,39 @@ def vista_impresion_formulario(request, formulario_id):
             
         for v in m.valores.all():
             valor = ""
-            if v.valor_number is not None:
+            # Priorizar valor_text sobre valor_number (para compatibilidad con datos antiguos)
+            if v.valor_text:
+                valor = v.valor_text
+                # Si es un campo de tiempo (parametro-id="17", campo-id="19" o parametro-id="14", campo-id="18"), convertir a formato 12 horas
+                if (p_id == 17 and v.campo_id == 19) or (p_id == 14 and v.campo_id == 18):
+                    # El valor viene en formato "HH:MM" (24 horas), convertir a formato 12 horas
+                    hora_match = re.match(r'^(\d{1,2}):(\d{2})$', valor)
+                    if hora_match:
+                        horas = int(hora_match.group(1))
+                        minutos = hora_match.group(2)
+                        ampm = 'p. m.' if horas >= 12 else 'a. m.'
+                        horas = horas % 12
+                        horas = horas if horas else 12  # Si es 0, mostrar 12
+                        valor = f"{horas:02d}:{minutos} {ampm}"
+                else:
+                    # Para otros campos, buscar el texto completo del select
+                    valor = obtener_texto_completo_select(p_id, v.campo_id, valor)
+            elif v.valor_number is not None:
+                # Compatibilidad con datos antiguos que puedan estar en valor_number
                 valor = float(v.valor_number)
                 if valor.is_integer(): valor = int(valor)
-            elif v.valor_text:
-                valor = v.valor_text
+                valor = str(valor)
+                # Intentar obtener el texto completo también para valores numéricos antiguos
+                valor = obtener_texto_completo_select(p_id, v.campo_id, valor)
             elif v.valor_boolean is not None:
                 valor = "SÍ" if v.valor_boolean else "NO"
+                # Para campos booleanos, buscar el texto completo
+                if p_id == 11 and v.campo_id == 14:
+                    # Membranas íntegras
+                    valor = "Sí - Bolsa amniótica íntegra" if v.valor_boolean else "No - Ya hubo ruptura"
+                elif p_id == 12 and v.campo_id == 15:
+                    # Membranas rotas
+                    valor = "Sí – Espontánea o artificial" if v.valor_boolean else "No - Membranas aún íntegras"
                 
             grid_data[p_id][h_str][v.campo_id] = valor
 

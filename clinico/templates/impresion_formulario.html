@@ -34,6 +34,24 @@
         .header-table td {
             padding: 10px;
         }
+        
+        /* Datos del Paciente - Reducir altura de filas */
+        .info-label {
+            font-weight: bold;
+            background-color: #f3f4f6;
+            width: 15%;
+            padding: 1px 4px !important;
+            vertical-align: middle;
+            font-size: 8pt;
+            line-height: 1.2;
+        }
+        .info-value {
+            width: 35%;
+            padding: 1px 4px !important;
+            vertical-align: middle;
+            font-size: 8pt;
+            line-height: 1.2;
+        }
         .logo-cell {
             width: 150px;
             text-align: center;
@@ -54,6 +72,17 @@
             width: 180px;
             font-size: 8pt;
         }
+        .accreditation-cell {
+            width: 80px;
+            text-align: right;
+            vertical-align: top;
+            padding: 5px;
+        }
+        .accreditation-img {
+            max-width: 60px;
+            max-height: 60px;
+            object-fit: contain;
+        }
         
         /* Info Paciente */
         .info-label {
@@ -72,8 +101,11 @@
         .grid-table th {
             background-color: #3b82f6;
             color: white;
-            font-size: 8pt;
+            font-size: 7pt;
             text-align: center;
+        }
+        .grid-table .time-col {
+            font-size: 6pt;
         }
         .grid-table .time-col {
             width: 8.4%;
@@ -85,19 +117,20 @@
             background-color: #e5e7eb;
             font-weight: bold;
             text-transform: uppercase;
+            font-size: 7pt;
         }
         .param-name {
             font-weight: 500;
-            font-size: 8pt;
+            font-size: 7pt;
         }
         .valor-celda {
             text-align: center;
-            font-size: 8pt;
+            font-size: 7pt;
             height: 25px;
             vertical-align: middle;
         }
         .multi-campo {
-            font-size: 7pt;
+            font-size: 6pt;
             border-bottom: 1px solid #eee;
         }
         .multi-campo:last-child {
@@ -131,6 +164,9 @@
                     <b>HOJA:</b> {{ f.num_hoja }} DE 1<br>
                     <b>FECHA:</b> {{ f.fecha_elabora|date:"d/m/Y" }}
                 </td>
+                <td class="accreditation-cell">
+                    <img class="accreditation-img" src="{% static 'img/logo_acreditacion.png' %}" alt="Logo Acreditación">
+                </td>
             </tr>
         </table>
 
@@ -138,7 +174,9 @@
         <table>
             <tr>
                 <td class="info-label">PACIENTE:</td>
-                <td class="info-value" colspan="3">{{ p.nombres }}</td>
+                <td class="info-value">{{ p.nombres }}</td>
+                <td class="info-label">GRUPO SANGUÍNEO:</td>
+                <td class="info-value">{{ p.get_tipo_sangre_display|default:"—" }}</td>
             </tr>
             <tr>
                 <td class="info-label">IDENTIFICACIÓN:</td>
@@ -150,11 +188,19 @@
                 <td class="info-label">ASEGURADORA:</td>
                 <td class="info-value">{{ f.aseguradora.nombre|default:"N/A" }}</td>
                 <td class="info-label">EDAD:</td>
-                <td class="info-value">{{ f.edad_snapshot }} años</td>
+                <td class="info-value">{{ f.edad_snapshot|default:"—" }} años</td>
             </tr>
             <tr>
+                <td class="info-label">EDAD GESTACIONAL:</td>
+                <td class="info-value">{{ f.edad_gestion|default:"—" }} semanas</td>
+                <td class="info-label">G_P_C_A_V_M:</td>
+                <td class="info-value">{{ f.get_estado_display|default:"—" }}</td>
+            </tr>
+            <tr>
+                <td class="info-label">N° CONTROLES PRENATALES:</td>
+                <td class="info-value">{{ f.n_controles_prenatales|default:"—" }}</td>
                 <td class="info-label">DIAGNÓSTICO:</td>
-                <td class="info-value" colspan="3">{{ f.diagnostico|default:"—" }}</td>
+                <td class="info-value">{{ f.diagnostico|default:"—" }}</td>
             </tr>
         </table>
 
@@ -167,7 +213,7 @@
                 </tr>
                 <tr>
                     {% for h in horas %}
-                        <th class="time-col">{{ h|date:"H:i" }}</th>
+                        <th class="time-col">{{ h|hora_12h }}</th>
                     {% endfor %}
                     {% for i in "1234567890"|make_list %}
                         {% if forloop.counter > horas|length %}

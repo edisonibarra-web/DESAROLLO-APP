@@ -18,7 +18,6 @@
                         <div class="logo-box">
                             <img src="{% static 'img/logo_hospital.png' %}" alt="Logo Hospital">
                         </div>
-                        
                     </div>
                 </div>
                 <div class="header-center">
@@ -228,6 +227,211 @@
                                         {% if parametro.campos.count > 1 %}
                                         <span class="field-label">{{ campo.nombre|slice:":3" }}</span>
                                         {% endif %}
+                                        {% if parametro.id == 7 and campo.id == 9 %}
+                                        <select class="data-input" 
+                                                data-parametro-id="{{ parametro.id }}" 
+                                                data-campo-id="{{ campo.id }}"
+                                                data-hora-index="{{ forloop.parentloop.counter0 }}" 
+                                                data-tipo-valor="{{ campo.tipo_valor }}">
+                                            <option value="">Seleccione...</option>
+                                            <option value="0">0 Ausente</option>
+                                            <option value="1">1 Leve (+)</option>
+                                            <option value="2">2 Moderada (++)</option>
+                                            <option value="3">3 Fuerte (+++)</option>
+                                            <option value="4">4 Hipertónica</option>
+                                        </select>
+                                        {% elif parametro.id == 4 and campo.id == 5 %}
+                                        <select class="data-input" 
+                                                data-parametro-id="{{ parametro.id }}" 
+                                                data-campo-id="{{ campo.id }}"
+                                                data-hora-index="{{ forloop.parentloop.counter0 }}" 
+                                                data-tipo-valor="{{ campo.tipo_valor }}">
+                                            <option value="">Seleccione...</option>
+                                            <option value="<32.0">< 32.0 Hipotermia profunda</option>
+                                            <option value="32.0-34.9">32.0 – 34.9 Hipotermia moderada</option>
+                                            <option value="35.0-35.9">35.0 – 35.9 Hipotermia leve</option>
+                                            <option value="36.0-37.4">36.0 – 37.4 Normotermia</option>
+                                            <option value="37.5-37.9">37.5 – 37.9 Febrícula</option>
+                                            <option value="38.0-38.9">38.0 – 38.9 Fiebre</option>
+                                            <option value="39.0-40.9">39.0 – 40.9 Hipertermia</option>
+                                            <option value=">=41.0">≥ 41.0 Emergencia vital</option>
+                                        </select>
+                                        {% elif parametro.id == 2 and campo.id == 3 %}
+                                        <select class="data-input" 
+                                                data-parametro-id="{{ parametro.id }}" 
+                                                data-campo-id="{{ campo.id }}"
+                                                data-hora-index="{{ forloop.parentloop.counter0 }}" 
+                                                data-tipo-valor="{{ campo.tipo_valor }}">
+                                            <option value="">Seleccione...</option>
+                                            <option value="<40">< 40 Bradicardia severa</option>
+                                            <option value="40-59">40 – 59 Bradicardia</option>
+                                            <option value="60-100">60 – 100 Normal</option>
+                                            <option value="101-120">101 – 120 Taquicardia leve</option>
+                                            <option value="121-150">121 – 150 Taquicardia</option>
+                                            <option value=">150">> 150 Taquicardia severa</option>
+                                        </select>
+                                        {% elif parametro.id == 3 and campo.id == 4 %}
+                                        <select class="data-input" 
+                                                data-parametro-id="{{ parametro.id }}" 
+                                                data-campo-id="{{ campo.id }}"
+                                                data-hora-index="{{ forloop.parentloop.counter0 }}" 
+                                                data-tipo-valor="{{ campo.tipo_valor }}">
+                                            <option value="">Seleccione...</option>
+                                            <option value="<8">< 8 Bradipnea</option>
+                                            <option value="8-11">8 – 11 FR baja</option>
+                                            <option value="12-20">12 – 20 Normal</option>
+                                            <option value="21-30">21 – 30 Taquipnea</option>
+                                            <option value=">30">> 30 Distrés respiratorio</option>
+                                        </select>
+                                        {% elif parametro.id == 5 and campo.id == 16 %}
+                                        <select class="data-input" 
+                                                data-parametro-id="{{ parametro.id }}" 
+                                                data-campo-id="{{ campo.id }}"
+                                                data-hora-index="{{ forloop.parentloop.counter0 }}" 
+                                                data-tipo-valor="{{ campo.tipo_valor }}">
+                                            <option value="">Seleccione...</option>
+                                            <option value="0">0 Sin dinámica</option>
+                                            <option value="1-2">1–2 Fase latente</option>
+                                            <option value="3-5">3–5 Trabajo activo</option>
+                                            <option value=">5">> 5 Taquisistolia</option>
+                                        </select>
+                                        {% elif parametro.id == 6 and campo.id == 17 %}
+                                        <select class="data-input" 
+                                                data-parametro-id="{{ parametro.id }}" 
+                                                data-campo-id="{{ campo.id }}"
+                                                data-hora-index="{{ forloop.parentloop.counter0 }}" 
+                                                data-tipo-valor="{{ campo.tipo_valor }}">
+                                            <option value="">Seleccione...</option>
+                                            <option value="<30">< 30 Ineficaz</option>
+                                            <option value="30-60">30 – 60 Normal</option>
+                                            <option value="61-90">61 – 90 Fuerte</option>
+                                            <option value=">90">> 90 Riesgo fetal</option>
+                                        </select>
+                                        {% elif parametro.id == 8 and campo.id == 6 %}
+                                        <select class="data-input" 
+                                                data-parametro-id="{{ parametro.id }}" 
+                                                data-campo-id="{{ campo.id }}"
+                                                data-hora-index="{{ forloop.parentloop.counter0 }}" 
+                                                data-tipo-valor="{{ campo.tipo_valor }}">
+                                            <option value="">Seleccione...</option>
+                                            <option value="<100">< 100 Bradicardia severa</option>
+                                            <option value="100-109">100 – 109 Bradicardia</option>
+                                            <option value="110-160">110 – 160 Normal</option>
+                                            <option value="161-180">161 – 180 Taquicardia</option>
+                                            <option value=">180">> 180 Taquicardia severa</option>
+                                        </select>
+                                        {% elif parametro.id == 9 and campo.id == 10 %}
+                                        <select class="data-input" 
+                                                data-parametro-id="{{ parametro.id }}" 
+                                                data-campo-id="{{ campo.id }}"
+                                                data-hora-index="{{ forloop.parentloop.counter0 }}" 
+                                                data-tipo-valor="{{ campo.tipo_valor }}">
+                                            <option value="">Seleccione...</option>
+                                            <option value="0">0 - Ausentes</option>
+                                            <option value="1">1 - Disminuidos</option>
+                                            <option value="2">2 - Presentes</option>
+                                            <option value="3">3 - Exagerados</option>
+                                        </select>
+                                        {% elif parametro.id == 10 and campo.id == 11 %}
+                                        <select class="data-input" 
+                                                data-parametro-id="{{ parametro.id }}" 
+                                                data-campo-id="{{ campo.id }}"
+                                                data-hora-index="{{ forloop.parentloop.counter0 }}" 
+                                                data-tipo-valor="{{ campo.tipo_valor }}">
+                                            <option value="">Seleccione...</option>
+                                            <option value="Cefálica">Cefálica</option>
+                                            <option value="Podálica">Podálica</option>
+                                            <option value="Transversa">Transversa</option>
+                                            <option value="Oblicua">Oblicua</option>
+                                            <option value="Compuesta">Compuesta</option>
+                                        </select>
+                                        {% elif parametro.id == 13 and campo.id == 12 %}
+                                        <select class="data-input" 
+                                                data-parametro-id="{{ parametro.id }}" 
+                                                data-campo-id="{{ campo.id }}"
+                                                data-hora-index="{{ forloop.parentloop.counter0 }}" 
+                                                data-tipo-valor="{{ campo.tipo_valor }}">
+                                            <option value="">Seleccione...</option>
+                                            <option value="Claro">Claro</option>
+                                            <option value="Meconio leve">Meconio leve</option>
+                                            <option value="Meconio espeso">Meconio espeso</option>
+                                            <option value="Hemático">Hemático</option>
+                                            <option value="Turbio">Turbio</option>
+                                            <option value="Fétido">Fétido</option>
+                                        </select>
+                                        {% elif parametro.id == 11 and campo.id == 14 %}
+                                        <select class="data-input" 
+                                                data-parametro-id="{{ parametro.id }}" 
+                                                data-campo-id="{{ campo.id }}"
+                                                data-hora-index="{{ forloop.parentloop.counter0 }}" 
+                                                data-tipo-valor="{{ campo.tipo_valor }}">
+                                            <option value="">Seleccione...</option>
+                                            <option value="Sí - Bolsa amniótica íntegra">Sí - Bolsa amniótica íntegra</option>
+                                            <option value="No - Ya hubo ruptura">No - Ya hubo ruptura</option>
+                                        </select>
+                                        {% elif parametro.id == 12 and campo.id == 15 %}
+                                        <select class="data-input" 
+                                                data-parametro-id="{{ parametro.id }}" 
+                                                data-campo-id="{{ campo.id }}"
+                                                data-hora-index="{{ forloop.parentloop.counter0 }}" 
+                                                data-tipo-valor="{{ campo.tipo_valor }}">
+                                            <option value="">Seleccione...</option>
+                                            <option value="No - Membranas aún íntegras">No - Membranas aún íntegras</option>
+                                            <option value="Sí – Espontánea o artificial">Sí – Espontánea o artificial</option>
+                                        </select>
+                                        {% elif parametro.id == 14 and campo.id == 18 %}
+                                        <input type="time" 
+                                               class="data-input" 
+                                               data-parametro-id="{{ parametro.id }}" 
+                                               data-campo-id="{{ campo.id }}"
+                                               data-hora-index="{{ forloop.parentloop.counter0 }}" 
+                                               data-tipo-valor="{{ campo.tipo_valor }}" 
+                                               placeholder="Tiempo">
+                                        {% elif parametro.id == 15 and campo.id == 7 %}
+                                        <select class="data-input" 
+                                                data-parametro-id="{{ parametro.id }}" 
+                                                data-campo-id="{{ campo.id }}"
+                                                data-hora-index="{{ forloop.parentloop.counter0 }}" 
+                                                data-tipo-valor="{{ campo.tipo_valor }}">
+                                            <option value="">Seleccione...</option>
+                                            <option value="0–3 Latente">0–3 Latente</option>
+                                            <option value="4–6 Activa">4–6 Activa</option>
+                                            <option value="7–9 Transición">7–9 Transición</option>
+                                            <option value="10 Completa">10 Completa</option>
+                                        </select>
+                                        {% elif parametro.id == 17 and campo.id == 19 %}
+                                        <input type="time" 
+                                               class="data-input" 
+                                               data-parametro-id="{{ parametro.id }}" 
+                                               data-campo-id="{{ campo.id }}"
+                                               data-hora-index="{{ forloop.parentloop.counter0 }}" 
+                                               data-tipo-valor="{{ campo.tipo_valor }}" 
+                                               placeholder="Tiempo">
+                                        {% elif parametro.id == 18 and campo.id == 13 %}
+                                        <select class="data-input" 
+                                                data-parametro-id="{{ parametro.id }}" 
+                                                data-campo-id="{{ campo.id }}"
+                                                data-hora-index="{{ forloop.parentloop.counter0 }}" 
+                                                data-tipo-valor="{{ campo.tipo_valor }}">
+                                            <option value="">Seleccione...</option>
+                                            <option value="Categoría I (Normal)">Categoría I (Normal)</option>
+                                            <option value="Categoría II (Indeterminada)">Categoría II (Indeterminada)</option>
+                                            <option value="Categoría III (Patológica)">Categoría III (Patológica)</option>
+                                            <option value="No evaluable">No evaluable</option>
+                                        </select>
+                                        {% elif parametro.id == 19 and campo.id == 20 %}
+                                        <select class="data-input" 
+                                                data-parametro-id="{{ parametro.id }}" 
+                                                data-campo-id="{{ campo.id }}"
+                                                data-hora-index="{{ forloop.parentloop.counter0 }}" 
+                                                data-tipo-valor="{{ campo.tipo_valor }}">
+                                            <option value="">Seleccione...</option>
+                                            <option value="0 No uso">0 No uso</option>
+                                            <option value="1 – 5 Dosis baja">1 – 5 Dosis baja</option>
+                                            <option value="6 – 20 Terapéutica">6 – 20 Terapéutica</option>
+                                            <option value="> 20 Riesgo">> 20 Riesgo</option>
+                                        </select>
+                                        {% else %}
                                         <input type="text" 
                                                class="data-input" 
                                                data-parametro-id="{{ parametro.id }}" 
@@ -235,6 +439,7 @@
                                                data-hora-index="{{ forloop.parentloop.counter0 }}" 
                                                data-tipo-valor="{{ campo.tipo_valor }}" 
                                                placeholder="{{ campo.nombre }}">
+                                        {% endif %}
                                     </div>
                                     {% endfor %}
                                 </div>
